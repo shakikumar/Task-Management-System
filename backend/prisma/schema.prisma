@@ -1,0 +1,135 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ==========================================
+// 1. USER ENTITY & SYSTEM ROLES
+// ==========================================
+enum Role {
+  ADMINISTRATOR
+  PROJECT_MANAGER
+  COLLABORATOR
+}
+
+model User {
+  id                String   @id @default(uuid())
+  name              String
+  email             String   @unique
+  password          String
+  role              Role     @default(COLLABORATOR)
+  mustResetPassword Boolean  @default(false) // Required for your Phase 2 onboarding feature
+  isActive          Boolean  @default(true) // For administrative soft-deactivation
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relational Links
+  ownedProjects Project[]      @relation("ProjectOwner")
+  assignedTasks Task[]         @relation("TaskAssignees")
+  comments      Comment[]
+  attachments   Attachment[]
+  notifications Notification[]
+}
+
+// ==========================================
+// 2. PROJECT ENTITY (Parent Container)
+// ==========================================
+model Project {
+  id          String   @id @default(uuid())
+  name        String // Matches your guide
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relational Links
+  createdById String
+  createdBy   User   @relation("ProjectOwner", fields: [createdById], references: [id], onDelete: Restrict)
+  tasks       Task[]
+}
+
+// ==========================================
+// 3. TASK ENTITY (Child Work Items)
+// ==========================================
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model Task {
+  id          String     @id @default(uuid())
+  title       String
+  description String?
+  status      TaskStatus @default(TODO)
+  priority    Priority   @default(MEDIUM)
+  dueDate     DateTime? // Made optional so seeders don't break on missing dates
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  // Relational Links
+  projectId      String
+  project        Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignedUserId String
+  assignedUser   User         @relation("TaskAssignees", fields: [assignedUserId], references: [id], onDelete: Cascade)
+  comments       Comment[]
+  attachments    Attachment[]
+
+  @@index([projectId])
+  @@index([assignedUserId])
+}
+
+// ==========================================
+// 4. COMMENT ENTITY (Task Discussions)
+// ==========================================
+model Comment {
+  id        String   @id @default(uuid())
+  content   String // Matches your text property
+  createdAt DateTime @default(now())
+
+  // Relational Links
+  taskId String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ==========================================
+// 5. ATTACHMENT ENTITY (File Metadata)
+// ==========================================
+model Attachment {
+  id        String   @id @default(uuid())
+  fileName  String
+  fileUrl   String
+  createdAt DateTime @default(now())
+
+  // Relational Links
+  taskId String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ==========================================
+// 6. NOTIFICATION ENTITY (Real-Time Streams)
+// ==========================================
+model Notification {
+  id        String   @id @default(uuid())
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  // Relational Links
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
