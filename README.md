@@ -424,6 +424,4 @@ Role is enforced by the `restrictTo(...roles)` middleware in [`authMiddleware.js
 
 <div align="center">
 
-Made with ❤️ by the TMS University Group
-
 </div>
