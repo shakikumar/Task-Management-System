@@ -28,7 +28,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: "20"
+  NODE_VERSION: "22"
 
 jobs:
 
@@ -79,6 +79,9 @@ jobs:
             console.log('✅ Swagger spec OK — title:', spec.info.title);
           "
 
+      - name: 🔧  Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: 🐳  Build backend Docker image
         uses: docker/build-push-action@v5
         with:
@@ -126,6 +129,9 @@ jobs:
           name: frontend-dist-${{ github.sha }}
           path: frontend/dist/
           retention-days: 7
+
+      - name: 🔧  Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: 🐳  Build frontend Docker image
         uses: docker/build-push-action@v5

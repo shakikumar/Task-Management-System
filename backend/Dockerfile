@@ -6,7 +6,7 @@
 # ============================================================
 
 # ── Stage 1: Builder ────────────────────────────────────────
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 LABEL maintainer="TMS Team"
 LABEL description="Task Management System — Backend API"
@@ -29,7 +29,7 @@ COPY . .
 RUN npx prisma generate
 
 # ── Stage 2: Runner ─────────────────────────────────────────
-FROM node:20-alpine AS runner
+FROM node:22-alpine AS runner
 
 RUN apk add --no-cache openssl
 
