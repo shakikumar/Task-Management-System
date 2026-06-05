@@ -7,6 +7,10 @@ const express = require('express');   // The web server framework
 const cors = require('cors');         // Allows frontend to talk to backend
 require('dotenv').config();           // Loads your .env file
 
+// Swagger API Documentation
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./config/swagger');
+
 // Import your route files (we'll create these next)
 const authRoutes = require('./routes/authRoutes');
 
@@ -30,6 +34,19 @@ app.use(express.json());
 // ==============================
 // ROUTES (the URLs your server listens to)
 // ==============================
+
+// ── API Documentation ──────────────────────────────────────────────────────
+// Interactive Swagger UI: http://localhost:5000/api/docs
+// Raw OpenAPI JSON:       http://localhost:5000/api/docs.json
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customSiteTitle: 'TMS API Docs',
+  customCss: '.swagger-ui .topbar { background-color: #1e293b; }',
+  swaggerOptions: { persistAuthorization: true },
+}));
+app.get('/api/docs.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
 
 // All auth routes will start with /api/auth
 // Example: /api/auth/login

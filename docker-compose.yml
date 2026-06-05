@@ -1,0 +1,105 @@
+# ============================================================
+# docker-compose.yml — Task Management System
+# Orchestrates all three services:
+#   • backend  — Express + Prisma API (port 5000)
+#   • frontend — React SPA served by Nginx (port 3000)
+#   • db       — Local PostgreSQL (only used in dev/testing;
+#                production uses Supabase — set DATABASE_URL in .env)
+#
+# Usage:
+#   Development (with local DB):  docker compose --profile local-db up --build
+#   Production  (Supabase only):  docker compose up --build
+#
+# Copy .env.example → .env and fill in values before running.
+# ============================================================
+
+services:
+
+  # ── Local PostgreSQL (optional — dev / CI only) ──────────
+  db:
+    image: postgres:16-alpine
+    profiles: ["local-db"]          # only starts when --profile local-db is used
+    container_name: tms_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER:     ${DB_USER:-tms_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-tms_password}
+      POSTGRES_DB:       ${DB_NAME:-task_manager_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - tms_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-tms_user} -d ${DB_NAME:-task_manager_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ── Backend — Node.js + Express API ──────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: runner
+    container_name: tms_backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV:      ${NODE_ENV:-production}
+      PORT:          ${PORT:-5000}
+      DATABASE_URL:  ${DATABASE_URL}
+      JWT_SECRET:    ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      CORS_ORIGIN:   ${CORS_ORIGIN:-http://localhost:3000}
+      SMTP_HOST:     ${SMTP_HOST:-}
+      SMTP_PORT:     ${SMTP_PORT:-}
+      SMTP_USER:     ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+    ports:
+      - "${PORT:-5000}:5000"
+    networks:
+      - tms_network
+    depends_on:
+      db:
+        condition: service_healthy
+        required: false          # doesn't fail when the db profile is absent
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5000/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # ── Frontend — React + Vite → Nginx ──────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: runner
+    container_name: tms_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    networks:
+      - tms_network
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:80/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+# ── Named volumes ─────────────────────────────────────────
+volumes:
+  postgres_data:
+    driver: local
+
+# ── Internal bridge network ───────────────────────────────
+networks:
+  tms_network:
+    driver: bridge

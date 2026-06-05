@@ -1,0 +1,29 @@
+# .dockerignore — Backend
+# Tells Docker what NOT to copy into the build context.
+# Keeps image layers small and avoids leaking secrets.
+
+# Node modules (re-installed inside the container)
+node_modules/
+
+# Development / build artefacts
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment secrets — never bake these into the image
+.env
+.env.*
+!.env.example
+
+# Git & editor metadata
+.git/
+.gitignore
+.DS_Store
+
+# Prisma migration engine binaries downloaded locally
+# (they will be regenerated for the correct platform inside Docker)
+prisma/migrations/
+
+# Logs
+logs/
+*.log

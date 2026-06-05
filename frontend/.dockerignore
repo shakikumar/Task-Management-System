@@ -1,0 +1,23 @@
+# .dockerignore — Frontend
+# Tells Docker what NOT to copy into the Vite build context.
+
+# Node modules (re-installed inside the container)
+node_modules/
+
+# Vite output (rebuilt inside the container)
+dist/
+
+# Development / debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment secrets
+.env
+.env.*
+!.env.example
+
+# Git & editor metadata
+.git/
+.gitignore
+.DS_Store
