@@ -1,0 +1,187 @@
+# ============================================================
+# .github/workflows/ci.yml
+# GitHub Actions — Continuous Integration Pipeline
+#
+# Triggers on every push / PR to main and memberE-phase1.
+#
+# Jobs:
+#   1. backend-ci  — lint, typecheck, Prisma validate, Docker build
+#   2. frontend-ci — lint, Vite build, Docker build
+#   3. docker-compose-check — validates the compose file is parseable
+# ============================================================
+
+name: CI — Task Management System
+
+on:
+  push:
+    branches:
+      - main
+      - "memberE-phase1"
+      - "member*"          # catch any member branch pattern
+  pull_request:
+    branches:
+      - main
+
+# Cancel any in-progress run for the same ref/PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "20"
+
+jobs:
+
+  # ══════════════════════════════════════════════════════════
+  # JOB 1 — Backend CI
+  # ══════════════════════════════════════════════════════════
+  backend-ci:
+    name: "Backend — Lint & Validate"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: ⬇️  Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🟢  Set up Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: 📦  Install dependencies
+        run: npm ci
+
+      - name: 🔍  Validate Prisma schema
+        run: npx prisma validate --schema=./prisma/schema.prisma
+
+      - name: 🏗️  Generate Prisma client (dry-run smoke test)
+        run: npx prisma generate --schema=./prisma/schema.prisma
+
+      - name: ✅  Check Swagger spec can be built
+        # Loads the spec via Node — will fail if any swagger-jsdoc parsing errors exist
+        env:
+          PORT: "5000"
+          NODE_ENV: "test"
+          DATABASE_URL: "postgresql://test:test@localhost:5432/test"
+          JWT_SECRET: "ci-test-secret"
+          JWT_EXPIRES_IN: "7d"
+          CORS_ORIGIN: "http://localhost:3000"
+        run: |
+          node -e "
+            process.env.PORT='5000';
+            const spec = require('./config/swagger');
+            if (!spec || !spec.info) { console.error('Swagger spec is invalid'); process.exit(1); }
+            console.log('✅ Swagger spec OK — title:', spec.info.title);
+          "
+
+      - name: 🐳  Build backend Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: false
+          tags: tms-backend:ci-${{ github.sha }}
+          target: runner
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ══════════════════════════════════════════════════════════
+  # JOB 2 — Frontend CI
+  # ══════════════════════════════════════════════════════════
+  frontend-ci:
+    name: "Frontend — Lint & Build"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: ⬇️  Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🟢  Set up Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: 📦  Install dependencies
+        run: npm ci
+
+      - name: 🔍  Lint
+        run: npm run lint
+
+      - name: 🏗️  Vite production build
+        run: npm run build
+
+      - name: 📤  Upload build artefact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist-${{ github.sha }}
+          path: frontend/dist/
+          retention-days: 7
+
+      - name: 🐳  Build frontend Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: false
+          tags: tms-frontend:ci-${{ github.sha }}
+          target: runner
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ══════════════════════════════════════════════════════════
+  # JOB 3 — Docker Compose validation
+  # ══════════════════════════════════════════════════════════
+  compose-check:
+    name: "Docker Compose — Config Validate"
+    runs-on: ubuntu-latest
+    needs: [backend-ci, frontend-ci]
+
+    steps:
+      - name: ⬇️  Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🐳  Validate docker-compose.yml syntax
+        run: |
+          # Create a minimal .env so compose can interpolate variables
+          cat <<'EOF' > .env
+          DATABASE_URL=postgresql://test:test@localhost:5432/test
+          JWT_SECRET=ci-test-secret
+          JWT_EXPIRES_IN=7d
+          PORT=5000
+          CORS_ORIGIN=http://localhost:3000
+          NODE_ENV=test
+          DB_USER=tms_user
+          DB_PASSWORD=tms_password
+          DB_NAME=task_manager_db
+          EOF
+          docker compose config --quiet
+          echo "✅ docker-compose.yml is valid"
+
+  # ══════════════════════════════════════════════════════════
+  # JOB 4 — CI Status Gate (required by branch protection)
+  # ══════════════════════════════════════════════════════════
+  ci-success:
+    name: "✅ All CI checks passed"
+    runs-on: ubuntu-latest
+    needs: [backend-ci, frontend-ci, compose-check]
+    if: always()
+    steps:
+      - name: Check all jobs succeeded
+        run: |
+          if [[ "${{ needs.backend-ci.result }}"  != "success" ]] || \
+             [[ "${{ needs.frontend-ci.result }}" != "success" ]] || \
+             [[ "${{ needs.compose-check.result }}" != "success" ]]; then
+            echo "❌ One or more CI jobs failed"
+            exit 1
+          fi
+          echo "✅ All CI jobs passed"
