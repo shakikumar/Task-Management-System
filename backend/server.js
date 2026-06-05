@@ -7,9 +7,11 @@ const express = require('express');   // The web server framework
 const cors = require('cors');         // Allows frontend to talk to backend
 require('dotenv').config();           // Loads your .env file
 
+
 // Swagger API Documentation
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
+
 
 // Import your route files (we'll create these next)
 const authRoutes = require('./routes/authRoutes');

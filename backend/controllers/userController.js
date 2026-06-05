@@ -13,13 +13,34 @@ const prisma = require('../config/prisma');
 /**
  * Admin/PM onboarding controller to invite a new team member [FR-RBAC-02]
  */
+/**
+ * @swagger
+ * /api/auth/onboard:
+ *   post:
+ *     summary: Onboard a new user (Member A - Phase 2)
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [name, email, role]
+ *             properties:
+ *               name: { type: string, example: "Test User" }
+ *               email: { type: string, example: "testuser@gmail.com" }
+ *               role: { type: string, example: "COLLABORATOR" }
+ *     responses:
+ *       201:
+ *         description: User onboarded successfully
+ */
 const createUserOnboarding = async (req, res) => {
     const { name, email, role } = req.body;
 
     try {
         // 1. Structural integrity check: Validate uniqueness of the incoming email identifier
         const existingUser = await prisma.user.findUnique({ where: { email } });
-        if (existingUser) {
+        if (existingUser) { 
             return res.status(400).json({ error: 'User with this email already exists.' });
         }
 
