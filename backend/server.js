@@ -3,10 +3,11 @@
 // This is the first file that runs when you start the backend
 // ==============================
 
-const express = require('express');   // The web server framework
-const cors = require('cors');         // Allows frontend to talk to backend
 require('dotenv').config();           // Loads your .env file
 
+
+const express = require('express');   // The web server framework
+const cors = require('cors');         // Allows frontend to talk to backend
 
 // Swagger API Documentation
 const swaggerUi = require('swagger-ui-express');
