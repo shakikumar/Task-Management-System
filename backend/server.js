@@ -1,68 +1,54 @@
 // ==============================
-// server.js — The Main Entry Point
-// This is the first file that runs when you start the backend
+// server.js — Main Entry Point
 // ==============================
 
-const express = require('express');   // The web server framework
-const cors = require('cors');         // Allows frontend to talk to backend
-require('dotenv').config();           // Loads your .env file
+const express = require('express');
+const cors = require('cors');
+require('dotenv').config();
 
-// Swagger API Documentation
+// Swagger documentation
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
 
-// Import your route files (we'll create these next)
+// ── PHASE 1 ROUTE ────────────────────────────────────────────────────────────
 const authRoutes = require('./routes/authRoutes');
 
-// Create the Express app — think of this as "turning on the restaurant"
+// ── PHASE 2 ROUTES (NEW) ─────────────────────────────────────────────────────
+const userRoutes = require('./routes/userRoutes');
+const projectRoutes = require('./routes/projectRoutes');
+
 const app = express();
 
-// ==============================
-// MIDDLEWARE (things that run on EVERY request)
-// ==============================
-
-// This allows the frontend (React on port 3000) to send requests here
+// ── MIDDLEWARE ────────────────────────────────────────────────────────────────
 app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
   credentials: true
 }));
-
-// This tells Express to understand JSON data sent from the frontend
-// Without this, req.body would be empty when frontend sends data
 app.use(express.json());
 
-// ==============================
-// ROUTES (the URLs your server listens to)
-// ==============================
-
-// ── API Documentation ──────────────────────────────────────────────────────
-// Interactive Swagger UI: http://localhost:5000/api/docs
-// Raw OpenAPI JSON:       http://localhost:5000/api/docs.json
+// ── SWAGGER DOCS ──────────────────────────────────────────────────────────────
+// Visit http://localhost:5000/api/docs to see all your APIs
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   customSiteTitle: 'TMS API Docs',
-  customCss: '.swagger-ui .topbar { background-color: #1e293b; }',
   swaggerOptions: { persistAuthorization: true },
 }));
-app.get('/api/docs.json', (req, res) => {
-  res.setHeader('Content-Type', 'application/json');
-  res.send(swaggerSpec);
-});
 
-// All auth routes will start with /api/auth
-// Example: /api/auth/login
+// ── ROUTES ────────────────────────────────────────────────────────────────────
+
+// Phase 1
 app.use('/api/auth', authRoutes);
 
-// A simple test route — visit http://localhost:5000/ to check if server is running
+// Phase 2 (NEW)
+app.use('/api/users', userRoutes);
+app.use('/api/projects', projectRoutes);
+
+// Test route
 app.get('/', (req, res) => {
   res.json({ message: '✅ TMS Backend Server is running!' });
 });
 
-// ==============================
-// START THE SERVER
-// ==============================
-
+// ── START SERVER ──────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
-
 app.listen(PORT, () => {
   console.log(`✅ Server is running on http://localhost:${PORT}`);
 });
