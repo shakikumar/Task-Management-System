@@ -1,14 +1,12 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
+import { SIDEBAR_WIDTH } from "../constants/layout";
 
 /* -------------------------------------------------------------------------- */
 /*  Layout constants — use in parent layouts for main-content offset          */
 /* -------------------------------------------------------------------------- */
 
-export const SIDEBAR_WIDTH = {
-  expanded: 260,
-  collapsed: 72,
-};
+
 
 /* -------------------------------------------------------------------------- */
 /*  Icons — path data + single renderer for consistent sizing/stroke           */
