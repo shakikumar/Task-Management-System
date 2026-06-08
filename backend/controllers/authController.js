@@ -109,8 +109,8 @@ const login = async (req, res) => {
       message: 'Something went wrong. Please try again later.'
     });
   }
-
-};
+  }
+;
 
 // Export so authRoutes.js can use it
 module.exports = { login };

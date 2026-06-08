@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import axios from "axios";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -9,12 +10,14 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
 
     const trimmedEmail = email.trim();
 
+    // validation
     if (!trimmedEmail || !password) {
       setError("Please enter email and password");
       return;
@@ -26,7 +29,30 @@ function Login() {
     }
 
     setError("");
-    navigate("/dashboard");
+    setLoading(true);
+
+    try {
+      const { data } = await axios.post(
+        "http://localhost:5000/api/auth/login",
+        {
+          email: trimmedEmail,
+          password,
+        }
+      );
+
+      // store JWT
+      localStorage.setItem("token", data.token);
+
+      // redirect
+      navigate("/dashboard");
+    } catch (err) {
+      setError(
+        err.response?.data?.message ||
+          "Something went wrong. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -57,17 +83,17 @@ function Login() {
             </p>
           </div>
 
-          {/* ERROR MESSAGE */}
+          {/* Error */}
           {error && (
             <p className="text-red-500 text-sm mb-4 text-center">
               {error}
             </p>
           )}
 
-          {/* FORM */}
+          {/* Form */}
           <form onSubmit={handleLogin} className="space-y-5">
 
-            {/* EMAIL */}
+            {/* Email */}
             <div>
               <label className="block text-sm mb-1">Email</label>
               <input
@@ -79,7 +105,7 @@ function Login() {
               />
             </div>
 
-            {/* PASSWORD */}
+            {/* Password */}
             <div>
               <label className="block text-sm mb-1">Password</label>
               <input
@@ -91,12 +117,17 @@ function Login() {
               />
             </div>
 
-            {/* BUTTON */}
+            {/* Button */}
             <button
               type="submit"
-              className="w-full rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 py-3 text-white font-semibold"
+              disabled={loading}
+              className={`w-full rounded-lg py-3 text-white font-semibold transition ${
+                loading
+                  ? "bg-gray-500 cursor-not-allowed"
+                  : "bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500"
+              }`}
             >
-              Sign in
+              {loading ? "Signing in..." : "Sign in"}
             </button>
 
           </form>
