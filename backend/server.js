@@ -3,16 +3,24 @@
 // This is the first file that runs when you start the backend
 // ==============================
 
+require('dotenv').config();           // Loads your .env file
+
+
 const express = require('express');   // The web server framework
 const cors = require('cors');         // Allows frontend to talk to backend
-require('dotenv').config();           // Loads your .env file
 
 // Swagger API Documentation
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
 
-// Import your route files (we'll create these next)
+
+// ── PHASE 1 ROUTE ────────────────────────────────────────────────────────────
 const authRoutes = require('./routes/authRoutes');
+
+// ── PHASE 2 ROUTES (NEW) ─────────────────────────────────────────────────────
+const userRoutes = require('./routes/userRoutes');
+const projectRoutes = require('./routes/projectRoutes');
+
 
 // Create the Express app — think of this as "turning on the restaurant"
 const app = express();
@@ -48,9 +56,14 @@ app.get('/api/docs.json', (req, res) => {
   res.send(swaggerSpec);
 });
 
-// All auth routes will start with /api/auth
-// Example: /api/auth/login
+// ── ROUTES ────────────────────────────────────────────────────────────────────
+
+// Phase 1
 app.use('/api/auth', authRoutes);
+
+// Phase 2 (NEW)
+app.use('/api/users', userRoutes);
+app.use('/api/projects', projectRoutes);
 
 // A simple test route — visit http://localhost:5000/ to check if server is running
 app.get('/', (req, res) => {

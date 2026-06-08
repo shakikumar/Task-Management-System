@@ -6,7 +6,11 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
-const adapter = new PrismaPg({ pool });
+pool.connect()
+  .then(() => console.log("✅ PostgreSQL Connected"))
+  .catch(err => console.error("❌ PostgreSQL Error:", err));
+
+const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 module.exports = prisma;
