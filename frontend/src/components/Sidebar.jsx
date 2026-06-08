@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { SIDEBAR_WIDTH } from "../constants/layout";
+
 
 /* -------------------------------------------------------------------------- */
 /*  Layout constants — use in parent layouts for main-content offset          */
