@@ -1,19 +1,32 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
+import DashboardLayout from "./layouts/DashboardLayout";
+
+// Pages
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route
-          path="/"
-          element={<h1 className="text-center text-3xl mt-10">Home Page</h1>}
-        />
-        <Route path="/login" element={<Login />} />
+    <Routes>
+      {/* Default route → redirect to login */}
+      <Route path="/" element={<Navigate to="/login" replace />} />
+
+      {/* Login (no layout) */}
+      <Route path="/login" element={<Login />} />
+
+      {/* Dashboard layout (sidebar + outlet pages) */}
+      <Route element={<DashboardLayout />}>
         <Route path="/dashboard" element={<Dashboard />} />
-      </Routes>
-    </BrowserRouter>
+
+        {/* Temporary placeholder pages */}
+        <Route path="/projects" element={<div>Projects Page</div>} />
+        <Route path="/users" element={<div>Users Page</div>} />
+        <Route path="/settings" element={<div>Settings Page</div>} />
+      </Route>
+
+      {/* Fallback */}
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes>
   );
 }
 
