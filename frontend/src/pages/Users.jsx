@@ -18,6 +18,7 @@ const INITIAL_USERS = [
 ];
 
 const ROLE_OPTIONS = ["All Roles", "Administrator", "Project Manager", "Collaborator"];
+const USER_ROLES = ["Administrator", "Project Manager", "Collaborator"];
 
 /* -------------------------------------------------------------------------- */
 /*  Badges                                                                   */
@@ -108,6 +109,16 @@ function Users() {
     collaborators: users.filter(u => u.role === "Collaborator").length,
   }), [users]);
 
+  function handleDelete(id) {
+    setUsers((prev) => prev.filter((user) => user.id !== id));
+  }
+
+  function handleRoleChange(id, role) {
+    setUsers((prev) =>
+      prev.map((user) => (user.id === id ? { ...user, role } : user))
+    );
+  }
+
   return (
     <div className="p-4 sm:p-6 lg:p-8">
 
@@ -178,6 +189,7 @@ function Users() {
               <th>Status</th>
               <th>Projects</th>
               <th>Last Active</th>
+              <th className="p-3 text-right">Actions</th>
             </tr>
           </thead>
 
@@ -189,6 +201,28 @@ function Users() {
                 <td><StatusBadge status={u.status} /></td>
                 <td>{u.assignedProjects}</td>
                 <td>{u.lastActive}</td>
+                <td className="p-3">
+                  <div className="flex items-center justify-end gap-2">
+                    <select
+                      value={u.role}
+                      onChange={(e) => handleRoleChange(u.id, e.target.value)}
+                      aria-label={`Change role for ${u.name}`}
+                      className="rounded-lg border border-slate-200 px-2 py-1.5 text-xs text-slate-700 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    >
+                      {USER_ROLES.map((role) => (
+                        <option key={role} value={role}>{role}</option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(u.id)}
+                      aria-label={`Delete ${u.name}`}
+                      className="rounded-lg px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>
