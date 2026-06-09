@@ -2,9 +2,8 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 
 function DashboardLayout() {
-  const navigate = useNavigate();
-
   
+
 
   return (
     <div className="flex h-screen bg-gray-100">
