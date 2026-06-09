@@ -25,6 +25,9 @@ function App() {
         <Route path="/projects" element={<Projects />} />
         <Route path="/users" element={<Users />} />
         <Route path="/settings" element={<div>Settings Page</div>} />
+        <Route path="/tasks" element={<div>Tasks Page (coming soon)</div>} />
+        <Route path="/profile" element={<div>Profile Page (coming soon)</div>} />
+
       </Route>
 
       {/* ADMIN SYSTEM (FIXED VERSION) */}
