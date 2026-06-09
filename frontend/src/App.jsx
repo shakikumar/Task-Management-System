@@ -1,9 +1,14 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+
 import DashboardLayout from "./layouts/DashboardLayout";
+import AdminLayout from "./layouts/AdminLayout";
+import Projects from "./pages/Projects";
 
 // Pages
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import AdminDashboard from "./pages/AdminDashboard";
+import Users from "./pages/Users";
 
 function App() {
   return (
@@ -14,14 +19,18 @@ function App() {
       {/* Login (no layout) */}
       <Route path="/login" element={<Login />} />
 
-      {/* Dashboard layout (sidebar + outlet pages) */}
+      {/* Dashboard layout (existing system - DO NOT TOUCH) */}
       <Route element={<DashboardLayout />}>
         <Route path="/dashboard" element={<Dashboard />} />
-
-        {/* Temporary placeholder pages */}
-        <Route path="/projects" element={<div>Projects Page</div>} />
-        <Route path="/users" element={<div>Users Page</div>} />
+        <Route path="/projects" element={<Projects />} />
+        <Route path="/users" element={<Users />} />
         <Route path="/settings" element={<div>Settings Page</div>} />
+      </Route>
+
+      {/* ADMIN SYSTEM (FIXED VERSION) */}
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route index element={<AdminDashboard />} />
+        <Route path="users" element={<Users />} />
       </Route>
 
       {/* Fallback */}
