@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
-
-
 /* -------------------------------------------------------------------------- */
 /*  Layout constants — use in parent layouts for main-content offset          */
 /* -------------------------------------------------------------------------- */
@@ -30,6 +28,9 @@ const ICON_PATHS = {
   close: ["M6 18L18 6M6 6l12 12"],
   collapse: ["M15.75 19.5L8.25 12l7.5-7.5"],
   expand: ["M8.25 4.5l7.5 7.5-7.5 7.5"],
+  logout: [
+    "M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9",
+  ],
 };
 
 function SidebarIcon({ paths, className = "h-5 w-5 shrink-0", strokeWidth = 1.75 }) {
@@ -54,10 +55,12 @@ function SidebarIcon({ paths, className = "h-5 w-5 shrink-0", strokeWidth = 1.75
 /* -------------------------------------------------------------------------- */
 
 const navItems = [
-  { to: "/dashboard", label: "Dashboard", icon: ICON_PATHS.dashboard, end: true },
-  { to: "/projects", label: "Projects", icon: ICON_PATHS.projects },
-  { to: "/users", label: "Users", icon: ICON_PATHS.users },
-  { to: "/settings", label: "Settings", icon: ICON_PATHS.settings },
+  { to: "/admin", label: "Overview", icon: ICON_PATHS.dashboard, end: true },
+  { to: "/admin/projects", label: "Projects", icon: ICON_PATHS.projects },
+  { to: "/admin/users", label: "Users", icon: ICON_PATHS.users },
+  { to: "/admin/tasks", label: "Tasks", icon: ICON_PATHS.dashboard },
+  { to: "/admin/profile", label: "Profile", icon: ICON_PATHS.users },
+  { to: "/admin/settings", label: "Settings", icon: ICON_PATHS.settings },
 ];
 
 /* -------------------------------------------------------------------------- */
@@ -121,7 +124,7 @@ function Sidebar({
   const [collapsedInternal, setCollapsedInternal] = useState(defaultCollapsed);
   const isCollapsedControlled = collapsedProp !== undefined;
   const collapsed = isCollapsedControlled ? collapsedProp : collapsedInternal;
-
+  
   const handleToggleCollapse = () => {
     const next = !collapsed;
     onCollapsedChange?.(next);
@@ -129,6 +132,10 @@ function Sidebar({
       setCollapsedInternal(next);
     }
   };
+  function handleLogout() {
+    localStorage.removeItem("token");
+    window.location.replace("/login");
+  }
 
   return (
     <>
@@ -253,6 +260,22 @@ function Sidebar({
               <p className="truncate text-xs text-slate-500">Free plan</p>
             </div>
           </div>
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            title={collapsed ? "Logout" : undefined}
+            aria-label="Logout"
+            className={[
+              "mt-3 flex w-full items-center rounded-lg py-2.5 text-sm font-medium transition-colors",
+              "bg-red-600/10 text-red-400 hover:bg-red-600 hover:text-white",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/50",
+              collapsed ? "lg:justify-center lg:gap-0 lg:px-2" : "gap-3 px-3",
+            ].join(" ")}
+          >
+            <SidebarIcon paths={ICON_PATHS.logout} />
+            <span className={collapsed ? "lg:sr-only" : ""}>Logout</span>
+          </button>
         </div>
       </aside>
     </>
