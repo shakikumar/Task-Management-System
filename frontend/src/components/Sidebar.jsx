@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
-
-
 /* -------------------------------------------------------------------------- */
 /*  Layout constants — use in parent layouts for main-content offset          */
 /* -------------------------------------------------------------------------- */
@@ -57,12 +55,12 @@ function SidebarIcon({ paths, className = "h-5 w-5 shrink-0", strokeWidth = 1.75
 /* -------------------------------------------------------------------------- */
 
 const navItems = [
-  { to: "/dashboard", label: "Dashboard", icon: ICON_PATHS.dashboard, end: true },
-  { to: "/projects", label: "Projects", icon: ICON_PATHS.projects },
-  { to: "/users", label: "Users", icon: ICON_PATHS.users },
-  { to: "/tasks", label: "Tasks", icon: ICON_PATHS.projects },
-  { to: "/profile", label: "Profile", icon: ICON_PATHS.users },
-  { to: "/settings", label: "Settings", icon: ICON_PATHS.settings },
+  { to: "/admin", label: "Overview", icon: ICON_PATHS.dashboard, end: true },
+  { to: "/admin/projects", label: "Projects", icon: ICON_PATHS.projects },
+  { to: "/admin/users", label: "Users", icon: ICON_PATHS.users },
+  { to: "/admin/tasks", label: "Tasks", icon: ICON_PATHS.dashboard },
+  { to: "/admin/profile", label: "Profile", icon: ICON_PATHS.users },
+  { to: "/admin/settings", label: "Settings", icon: ICON_PATHS.settings },
 ];
 
 /* -------------------------------------------------------------------------- */
@@ -126,7 +124,7 @@ function Sidebar({
   const [collapsedInternal, setCollapsedInternal] = useState(defaultCollapsed);
   const isCollapsedControlled = collapsedProp !== undefined;
   const collapsed = isCollapsedControlled ? collapsedProp : collapsedInternal;
-
+  
   const handleToggleCollapse = () => {
     const next = !collapsed;
     onCollapsedChange?.(next);
@@ -134,10 +132,9 @@ function Sidebar({
       setCollapsedInternal(next);
     }
   };
-
   function handleLogout() {
     localStorage.removeItem("token");
-    window.location.href = "/login";
+    window.location.replace("/login");
   }
 
   return (

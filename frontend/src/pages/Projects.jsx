@@ -51,11 +51,21 @@ function Projects() {
   }), [projects]);
 
   function handleCreate() {
+    if (!form.name.trim()) {
+      alert("Project name is required");
+      return;
+    }
+    
+    if (!form.owner) {
+      alert("Please select a project owner");
+      return;
+    }
     const newProject = {
       id: Date.now(),
       ...form,
       members: 1,
     };
+    
 
     setProjects([...projects, newProject]);
 
@@ -67,6 +77,9 @@ function Projects() {
       members: 1,
     });
     setIsOpen(false);
+  }
+  function handleDeleteProject(id) {
+    setProjects((prev) => prev.filter((project) => project.id !== id));
   }
 
   return (
@@ -125,9 +138,18 @@ function Projects() {
               <p>Members: {project.members}</p>
             </div>
 
-            <span className="inline-block mt-2 text-xs px-2 py-1 bg-gray-100 rounded">
-              {project.status}
-            </span>
+            <div className="mt-3 flex items-center justify-between">
+  <span className="text-xs px-2 py-1 bg-gray-100 rounded">
+    {project.status}
+  </span>
+
+  <button
+    onClick={() => handleDeleteProject(project.id)}
+    className="text-xs text-red-600 hover:text-red-800"
+  >
+    Delete
+  </button>
+</div>
           </div>
         ))}
 
@@ -154,6 +176,13 @@ function Projects() {
   ))}
 </select>
 
+<input
+  type="text"
+  placeholder="Project Name"
+  className="w-full border p-2 mb-2 rounded"
+  value={form.name}
+  onChange={(e) => setForm({ ...form, name: e.target.value })}
+/>
             <textarea
               placeholder="Description"
               className="w-full border p-2 mb-2 rounded"
@@ -161,17 +190,7 @@ function Projects() {
               onChange={(e) => setForm({ ...form, description: e.target.value })}
             />
 
-<select
-  className="w-full border p-2 mb-2 rounded"
-  value={form.owner}
-  onChange={(e) => setForm({ ...form, owner: e.target.value })}
->
-  <option value="">Select Owner</option>
-  <option value="Sarah Chen">Sarah Chen</option>
-  <option value="Marcus Webb">Marcus Webb</option>
-  <option value="Elena Rodriguez">Elena Rodriguez</option>
-  <option value="Priya Sharma">Priya Sharma</option>
-</select>
+
 
             <select
               className="w-full border p-2 mb-4 rounded"

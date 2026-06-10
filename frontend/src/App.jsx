@@ -13,32 +13,32 @@ import Users from "./pages/Users";
 function App() {
   return (
     <Routes>
-      {/* Default route → redirect to login */}
-      <Route path="/" element={<Navigate to="/login" replace />} />
+  {/* Default route → redirect to login */}
+  <Route path="/" element={<Navigate to="/login" replace />} />
 
-      {/* Login (no layout) */}
-      <Route path="/login" element={<Login />} />
+  {/* Login (no layout) */}
+  <Route path="/login" element={<Login />} />
 
-      {/* Dashboard layout (existing system - DO NOT TOUCH) */}
-      <Route element={<DashboardLayout />}>
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/projects" element={<Projects />} />
-        <Route path="/users" element={<Users />} />
-        <Route path="/settings" element={<div>Settings Page</div>} />
-        <Route path="/tasks" element={<div>Tasks Page (coming soon)</div>} />
-        <Route path="/profile" element={<div>Profile Page (coming soon)</div>} />
+  {/* ADMIN SYSTEM (ONLY ONE CLEAN STRUCTURE) */}
+  <Route path="/admin" element={<AdminLayout />}>
+    <Route index element={<AdminDashboard />} />
+    <Route path="projects" element={<Projects />} />
+    <Route path="users" element={<Users />} />
+    <Route path="tasks" element={<div>Tasks Page (coming soon)</div>} />
+    <Route path="profile" element={<div>Profile Page (coming soon)</div>} />
+    <Route path="settings" element={<div>Settings Page</div>} />
+  </Route>
 
-      </Route>
+  {/* OLD SYSTEM (KEEP ONLY IF STILL NEEDED) */}
+  <Route path="/projects" element={<Projects />} />
+  <Route path="/users" element={<Users />} />
+  <Route path="/tasks" element={<div>Tasks Page (coming soon)</div>} />
+  <Route path="/profile" element={<div>Profile Page (coming soon)</div>} />
+  <Route path="/settings" element={<div>Settings Page</div>} />
 
-      {/* ADMIN SYSTEM (FIXED VERSION) */}
-      <Route path="/admin" element={<AdminLayout />}>
-        <Route index element={<AdminDashboard />} />
-        <Route path="users" element={<Users />} />
-      </Route>
-
-      {/* Fallback */}
-      <Route path="*" element={<Navigate to="/login" replace />} />
-    </Routes>
+  {/* Fallback */}
+  <Route path="*" element={<Navigate to="/login" replace />} />
+</Routes>
   );
 }
 
