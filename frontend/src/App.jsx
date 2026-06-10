@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 //import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import Users from "./pages/Users";
+import Tasks from "./pages/Tasks";
 
 function App() {
   return (
@@ -24,7 +25,7 @@ function App() {
     <Route index element={<AdminDashboard />} />
     <Route path="projects" element={<Projects />} />
     <Route path="users" element={<Users />} />
-    <Route path="tasks" element={<div>Tasks Page (coming soon)</div>} />
+    <Route path="tasks" element={<Tasks />} />
     <Route path="profile" element={<div>Profile Page (coming soon)</div>} />
     <Route path="settings" element={<div>Settings Page</div>} />
   </Route>
