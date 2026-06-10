@@ -1,12 +1,12 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 
-import DashboardLayout from "./layouts/DashboardLayout";
+//import DashboardLayout from "./layouts/DashboardLayout";
 import AdminLayout from "./layouts/AdminLayout";
 import Projects from "./pages/Projects";
 
 // Pages
 import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
+//import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import Users from "./pages/Users";
 
