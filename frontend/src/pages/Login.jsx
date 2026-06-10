@@ -44,7 +44,7 @@ function Login() {
       localStorage.setItem("token", data.token);
 
       // redirect
-      navigate("/dashboard");
+      navigate("/admin");
     } catch (err) {
       setError(
         err.response?.data?.message ||
