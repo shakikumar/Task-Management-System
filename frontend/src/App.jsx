@@ -1,23 +1,54 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
+// Layouts
+import AdminLayout from "./layouts/AdminLayout";
+
+// Pages
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import ChangePassword from "./pages/ChangePassword";
 import ProfileSettings from "./pages/ProfileSettings";
 
+import AdminDashboard from "./pages/AdminDashboard";
+import Projects from "./pages/Projects";
+import Users from "./pages/Users";
+
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route
-          path="/"
-          element={<h1 className="text-center text-3xl mt-10">Home Page</h1>}
-        />
-        <Route path="/login" element={<Login />} />
-        <Route path="/dashboard" element={<Dashboard />} />
 
-         {/* Member D Pages */}
+        {/* Default Route */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
+
+        {/* Login */}
+        <Route path="/login" element={<Login />} />
+
+        {/* Member D Pages */}
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/change-password" element={<ChangePassword />} />
         <Route path="/profile-settings" element={<ProfileSettings />} />
+
+        {/* Member C Admin System */}
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<AdminDashboard />} />
+          <Route path="projects" element={<Projects />} />
+          <Route path="users" element={<Users />} />
+          <Route path="tasks" element={<div>Tasks Page (coming soon)</div>} />
+          <Route path="profile" element={<div>Profile Page (coming soon)</div>} />
+          <Route path="settings" element={<div>Settings Page</div>} />
+        </Route>
+
+        {/* Legacy Routes */}
+        <Route path="/projects" element={<Projects />} />
+        <Route path="/users" element={<Users />} />
+        <Route path="/tasks" element={<div>Tasks Page (coming soon)</div>} />
+        <Route path="/profile" element={<div>Profile Page (coming soon)</div>} />
+        <Route path="/settings" element={<div>Settings Page</div>} />
+
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
+
       </Routes>
     </BrowserRouter>
   );

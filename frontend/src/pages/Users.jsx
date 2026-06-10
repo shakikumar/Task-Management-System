@@ -1,0 +1,310 @@
+import { useMemo, useState } from "react";
+
+/* -------------------------------------------------------------------------- */
+/*  Users Page (API-ready structure)                                          */
+/* -------------------------------------------------------------------------- */
+
+const INITIAL_USERS = [
+  { id: 1, name: "Sarah Chen", email: "sarah.chen@taskflow.io", role: "Administrator", status: "Active", assignedProjects: 8, lastActive: "2 min ago", initials: "SC" },
+  { id: 2, name: "Marcus Webb", email: "marcus.webb@taskflow.io", role: "Project Manager", status: "Active", assignedProjects: 5, lastActive: "18 min ago", initials: "MW" },
+  { id: 3, name: "Elena Rodriguez", email: "elena.r@taskflow.io", role: "Collaborator", status: "Active", assignedProjects: 3, lastActive: "1 hr ago", initials: "ER" },
+  { id: 4, name: "James Okonkwo", email: "james.okonkwo@taskflow.io", role: "Project Manager", status: "Inactive", assignedProjects: 4, lastActive: "3 days ago", initials: "JO" },
+  { id: 5, name: "Priya Sharma", email: "priya.sharma@taskflow.io", role: "Collaborator", status: "Active", assignedProjects: 6, lastActive: "45 min ago", initials: "PS" },
+  { id: 6, name: "Alex Morgan", email: "alex.morgan@taskflow.io", role: "Administrator", status: "Active", assignedProjects: 7, lastActive: "5 min ago", initials: "AM" },
+  { id: 7, name: "David Kim", email: "david.kim@taskflow.io", role: "Collaborator", status: "Invited", assignedProjects: 0, lastActive: "Never", initials: "DK" },
+  { id: 8, name: "Rachel Foster", email: "rachel.foster@taskflow.io", role: "Project Manager", status: "Active", assignedProjects: 4, lastActive: "Yesterday", initials: "RF" },
+  { id: 9, name: "Tom Hughes", email: "tom.hughes@taskflow.io", role: "Collaborator", status: "Inactive", assignedProjects: 2, lastActive: "1 week ago", initials: "TH" },
+  { id: 10, name: "Nina Patel", email: "nina.patel@taskflow.io", role: "Collaborator", status: "Active", assignedProjects: 5, lastActive: "30 min ago", initials: "NP" },
+];
+
+const ROLE_OPTIONS = ["All Roles", "Administrator", "Project Manager", "Collaborator"];
+const USER_ROLES = ["Administrator", "Project Manager", "Collaborator"];
+
+/* -------------------------------------------------------------------------- */
+/*  Badges                                                                   */
+/* -------------------------------------------------------------------------- */
+
+function RoleBadge({ role }) {
+  const styles = {
+    Administrator: "bg-violet-50 text-violet-700 ring-violet-600/20",
+    "Project Manager": "bg-indigo-50 text-indigo-700 ring-indigo-600/20",
+    Collaborator: "bg-slate-100 text-slate-700 ring-slate-500/20",
+  };
+
+  return (
+    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${styles[role]}`}>
+      {role}
+    </span>
+  );
+}
+
+function StatusBadge({ status }) {
+  const styles = {
+    Active: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+    Inactive: "bg-slate-100 text-slate-600 ring-slate-500/20",
+    Invited: "bg-amber-50 text-amber-700 ring-amber-600/20",
+  };
+
+  return (
+    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${styles[status]}`}>
+      {status}
+    </span>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Stat Card                                                               */
+/* -------------------------------------------------------------------------- */
+
+function StatCard({ label, value, icon, bg, text }) {
+  return (
+    <article className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm hover:shadow-md transition">
+      <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-lg ${bg}`}>
+        <svg className={`h-5 w-5 ${text}`} fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d={icon} />
+        </svg>
+      </div>
+      <p className="text-sm font-medium text-slate-500">{label}</p>
+      <p className="mt-1 text-2xl font-bold text-slate-900">{value}</p>
+    </article>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Users Page                                                              */
+/* -------------------------------------------------------------------------- */
+
+function Users() {
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState("All Roles");
+  const [users, setUsers] = useState(INITIAL_USERS);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    role: "Administrator",
+  });
+  
+
+  const filteredUsers = useMemo(() => {
+    const q = search.toLowerCase().trim();
+
+    return users.filter((u) => {
+      const matchSearch =
+        !q ||
+        u.name.toLowerCase().includes(q) ||
+        u.email.toLowerCase().includes(q);
+
+      const matchRole =
+        roleFilter === "All Roles" || u.role === roleFilter;
+
+      return matchSearch && matchRole;
+    });
+  }, [users, search, roleFilter]);
+
+  const stats = useMemo(() => ({
+    total: users.length,
+    active: users.filter(u => u.status === "Active").length,
+    managers: users.filter(u => u.role === "Project Manager").length,
+    collaborators: users.filter(u => u.role === "Collaborator").length,
+  }), [users]);
+
+  function handleDelete(id) {
+    setUsers((prev) => prev.filter((user) => user.id !== id));
+  }
+
+  function handleRoleChange(id, role) {
+    setUsers((prev) =>
+      prev.map((user) => (user.id === id ? { ...user, role } : user))
+    );
+  }
+
+  return (
+    <div className="p-4 sm:p-6 lg:p-8">
+
+      {/* Header */}
+      <header className="mb-6 sm:mb-8">
+        <p className="text-sm font-medium text-indigo-600">Administration</p>
+
+        <div className="mt-2 flex flex-col sm:flex-row sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">User Management</h1>
+            <p className="text-sm text-slate-500">
+              Manage users, roles, and access.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(true)}
+            className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700"
+          >
+            Add User
+          </button>
+        </div>
+      </header>
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+        <StatCard label="Total Users" value={stats.total} bg="bg-indigo-50" text="text-indigo-600"
+          icon="M15 19.128a9.38 9.38 0 002.625..." />
+
+        <StatCard label="Active Users" value={stats.active} bg="bg-emerald-50" text="text-emerald-600"
+          icon="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0" />
+
+        <StatCard label="Managers" value={stats.managers} bg="bg-violet-50" text="text-violet-600"
+          icon="M20.25 14.15v4.25c0..." />
+
+        <StatCard label="Collaborators" value={stats.collaborators} bg="bg-slate-100" text="text-slate-600"
+          icon="M18 18.72a9.094 9.094 0..." />
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search users..."
+          className="border rounded-lg px-3 py-2 w-full"
+        />
+
+        <select
+          value={roleFilter}
+          onChange={(e) => setRoleFilter(e.target.value)}
+          className="border rounded-lg px-3 py-2"
+        >
+          {ROLE_OPTIONS.map(r => (
+            <option key={r} value={r}>{r}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Table */}
+      <div className="bg-white border rounded-xl overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="text-left border-b bg-slate-50">
+            <tr>
+              <th className="p-3">User</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Projects</th>
+              <th>Last Active</th>
+              <th className="p-3 text-right">Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {filteredUsers.map((u) => (
+              <tr key={u.id} className="border-b hover:bg-slate-50">
+                <td className="p-3">{u.name}</td>
+                <td><RoleBadge role={u.role} /></td>
+                <td><StatusBadge status={u.status} /></td>
+                <td>{u.assignedProjects}</td>
+                <td>{u.lastActive}</td>
+                <td className="p-3">
+                  <div className="flex items-center justify-end gap-2">
+                    <select
+                      value={u.role}
+                      onChange={(e) => handleRoleChange(u.id, e.target.value)}
+                      aria-label={`Change role for ${u.name}`}
+                      className="rounded-lg border border-slate-200 px-2 py-1.5 text-xs text-slate-700 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    >
+                      {USER_ROLES.map((role) => (
+                        <option key={role} value={role}>{role}</option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(u.id)}
+                      aria-label={`Delete ${u.name}`}
+                      className="rounded-lg px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* SINGLE MODAL ONLY */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+
+            <h2 className="text-lg font-bold mb-4">Add User</h2>
+
+            <input
+  className="w-full mb-3 border rounded-lg px-3 py-2"
+  placeholder="Name"
+  value={formData.name}
+  onChange={(e) =>
+    setFormData({ ...formData, name: e.target.value })
+  }
+/>
+<input
+  className="w-full mb-3 border rounded-lg px-3 py-2"
+  placeholder="Email"
+  value={formData.email}
+  onChange={(e) =>
+    setFormData({ ...formData, email: e.target.value })
+  }
+/>
+
+<select
+  className="w-full mb-4 border rounded-lg px-3 py-2"
+  value={formData.role}
+  onChange={(e) =>
+    setFormData({ ...formData, role: e.target.value })
+  }
+>
+  <option>Administrator</option>
+  <option>Project Manager</option>
+  <option>Collaborator</option>
+</select>
+
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="px-4 py-2 border rounded-lg"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={() => {
+                  const newUser = {
+                    id: Date.now(),
+                    name: formData.name,
+                    email: formData.email,
+                    role: formData.role,
+                    status: "Active",
+                    assignedProjects: 0,
+                    lastActive: "Just now",
+                    initials: formData.name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .toUpperCase(),
+                  };
+                
+                  setUsers([newUser, ...users]);
+                  setIsModalOpen(false);
+                }}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg"
+              >
+                Save
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+}
+
+export default Users;
