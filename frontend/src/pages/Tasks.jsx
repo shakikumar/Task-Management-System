@@ -27,7 +27,6 @@ const INITIAL_TASKS = [
 function Tasks() {
   const [tasks, setTasks] = useState(INITIAL_TASKS);
 
-  // 👉 Add Task states
   const [title, setTitle] = useState("");
   const [assignee, setAssignee] = useState("");
   const [priority, setPriority] = useState("Medium");
@@ -37,7 +36,7 @@ function Tasks() {
   const getTasksByStatus = (status) =>
     tasks.filter((task) => task.status === status);
 
-  // 👉 Add Task function
+  // ✅ Add Task
   const addTask = () => {
     if (!title || !assignee) return;
 
@@ -56,11 +55,20 @@ function Tasks() {
     setPriority("Medium");
   };
 
+  // ✅ Move Task (NOW USED IN UI)
+  const updateTaskStatus = (id, newStatus) => {
+    setTasks((prev) =>
+      prev.map((task) =>
+        task.id === id ? { ...task, status: newStatus } : task
+      )
+    );
+  };
+
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">Tasks Board</h1>
 
-      {/* 👉 Add Task Form */}
+      {/* Add Task Form */}
       <div className="mb-6 bg-white p-4 rounded shadow-sm border">
         <h2 className="font-semibold mb-3">Add New Task</h2>
 
@@ -98,7 +106,7 @@ function Tasks() {
         </div>
       </div>
 
-      {/* 👉 Kanban Board */}
+      {/* Kanban Board */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {columns.map((col) => (
           <div key={col} className="bg-gray-50 p-4 rounded-lg">
@@ -111,13 +119,41 @@ function Tasks() {
               >
                 <h3 className="font-medium">{task.title}</h3>
 
-                <p className="text-xs text-gray-500">
-                  {task.assignee}
-                </p>
+                <p className="text-xs text-gray-500">{task.assignee}</p>
 
                 <span className="text-xs text-blue-600">
                   {task.priority}
                 </span>
+
+                {/* ✅ MOVE BUTTONS (THIS FIXES YOUR WARNING) */}
+                <div className="flex gap-2 mt-3 flex-wrap">
+  {task.status !== "To Do" && (
+    <button
+      onClick={() => updateTaskStatus(task.id, "To Do")}
+      className="text-xs px-2 py-1 bg-gray-200 rounded"
+    >
+      To Do
+    </button>
+  )}
+
+  {task.status !== "In Progress" && (
+    <button
+      onClick={() => updateTaskStatus(task.id, "In Progress")}
+      className="text-xs px-2 py-1 bg-blue-200 rounded"
+    >
+      In Progress
+    </button>
+  )}
+
+  {task.status !== "Completed" && (
+    <button
+      onClick={() => updateTaskStatus(task.id, "Completed")}
+      className="text-xs px-2 py-1 bg-green-200 rounded"
+    >
+      Done
+    </button>
+  )}
+</div>
               </div>
             ))}
           </div>

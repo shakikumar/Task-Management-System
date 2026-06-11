@@ -10,6 +10,8 @@ import Login from "./pages/Login";
 import AdminDashboard from "./pages/AdminDashboard";
 import Users from "./pages/Users";
 import Tasks from "./pages/Tasks";
+import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
 
 function App() {
   return (
@@ -26,8 +28,8 @@ function App() {
     <Route path="projects" element={<Projects />} />
     <Route path="users" element={<Users />} />
     <Route path="tasks" element={<Tasks />} />
-    <Route path="profile" element={<div>Profile Page (coming soon)</div>} />
-    <Route path="settings" element={<div>Settings Page</div>} />
+    <Route path="profile" element={<Profile />} />
+    <Route path="settings" element={<Settings />} />
   </Route>
 
   {/* OLD SYSTEM (KEEP ONLY IF STILL NEEDED) */}
