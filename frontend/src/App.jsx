@@ -9,9 +9,11 @@ import Dashboard from "./pages/Dashboard";
 import ChangePassword from "./pages/ChangePassword";
 import ProfileSettings from "./pages/ProfileSettings";
 
+// Admin Pages
 import AdminDashboard from "./pages/AdminDashboard";
 import Projects from "./pages/Projects";
 import Users from "./pages/Users";
+import Tasks from "./pages/Tasks";
 
 function App() {
   return (
@@ -28,17 +30,17 @@ function App() {
       <Route path="/change-password" element={<ChangePassword />} />
       <Route path="/profile-settings" element={<ProfileSettings />} />
 
-      {/* Admin */}
+      {/* ADMIN SYSTEM */}
       <Route path="/admin" element={<AdminLayout />}>
         <Route index element={<AdminDashboard />} />
         <Route path="projects" element={<Projects />} />
         <Route path="users" element={<Users />} />
-        <Route path="tasks" element={<div>Tasks Page (coming soon)</div>} />
-        <Route path="profile" element={<div>Profile Page (coming soon)</div>} />
+        <Route path="tasks" element={<Tasks />} />
+        <Route path="profile" element={<ProfileSettings />} />
         <Route path="settings" element={<div>Settings Page</div>} />
       </Route>
 
-      {/* Legacy */}
+      {/* Legacy Routes */}
       <Route path="/projects" element={<Projects />} />
       <Route path="/users" element={<Users />} />
 
