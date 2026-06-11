@@ -37,7 +37,7 @@ function App() {
         <Route path="users" element={<Users />} />
         <Route path="tasks" element={<Tasks />} />
         <Route path="profile" element={<ProfileSettings />} />
-        <Route path="settings" element={<div>Settings Page</div>} />
+        <Route path="settings" element={<ChangePassword />} />
       </Route>
 
       {/* Legacy Routes */}
