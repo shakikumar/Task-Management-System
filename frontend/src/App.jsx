@@ -1,45 +1,53 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 
-//import DashboardLayout from "./layouts/DashboardLayout";
+// Layouts
 import AdminLayout from "./layouts/AdminLayout";
-import Projects from "./pages/Projects";
 
 // Pages
 import Login from "./pages/Login";
-//import Dashboard from "./pages/Dashboard";
+import Dashboard from "./pages/Dashboard";
+import ChangePassword from "./pages/ChangePassword";
+import ProfileSettings from "./pages/ProfileSettings";
+
+// Admin Pages
 import AdminDashboard from "./pages/AdminDashboard";
+import Projects from "./pages/Projects";
 import Users from "./pages/Users";
 import Tasks from "./pages/Tasks";
 
 function App() {
   return (
     <Routes>
-  {/* Default route → redirect to login */}
-  <Route path="/" element={<Navigate to="/login" replace />} />
 
-  {/* Login (no layout) */}
-  <Route path="/login" element={<Login />} />
+      {/* Default Route */}
+      <Route path="/" element={<Navigate to="/login" replace />} />
 
-  {/* ADMIN SYSTEM (ONLY ONE CLEAN STRUCTURE) */}
-  <Route path="/admin" element={<AdminLayout />}>
-    <Route index element={<AdminDashboard />} />
-    <Route path="projects" element={<Projects />} />
-    <Route path="users" element={<Users />} />
-    <Route path="tasks" element={<Tasks />} />
-    <Route path="profile" element={<div>Profile Page (coming soon)</div>} />
-    <Route path="settings" element={<div>Settings Page</div>} />
-  </Route>
+      {/* Login */}
+      <Route path="/login" element={<Login />} />
 
-  {/* OLD SYSTEM (KEEP ONLY IF STILL NEEDED) */}
-  <Route path="/projects" element={<Projects />} />
-  <Route path="/users" element={<Users />} />
-  <Route path="/tasks" element={<div>Tasks Page (coming soon)</div>} />
-  <Route path="/profile" element={<div>Profile Page (coming soon)</div>} />
-  <Route path="/settings" element={<div>Settings Page</div>} />
+      {/* Member D Pages */}
+      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/change-password" element={<ChangePassword />} />
+      <Route path="/profile-settings" element={<ProfileSettings />} />
 
-  {/* Fallback */}
-  <Route path="*" element={<Navigate to="/login" replace />} />
-</Routes>
+      {/* ADMIN SYSTEM */}
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route index element={<AdminDashboard />} />
+        <Route path="projects" element={<Projects />} />
+        <Route path="users" element={<Users />} />
+        <Route path="tasks" element={<Tasks />} />
+        <Route path="profile" element={<ProfileSettings />} />
+        <Route path="settings" element={<ChangePassword />} />
+      </Route>
+
+      {/* Legacy Routes */}
+      <Route path="/projects" element={<Projects />} />
+      <Route path="/users" element={<Users />} />
+
+      {/* Fallback */}
+      <Route path="*" element={<Navigate to="/login" replace />} />
+
+    </Routes>
   );
 }
 

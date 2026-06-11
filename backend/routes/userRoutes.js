@@ -16,7 +16,8 @@ const {
   getAllUsers,
   getUserById,
   updateUser,
-  deleteUser
+  deleteUser,
+  updateProfile
 } = require('../controllers/userManagementController');
 
 /**
@@ -57,6 +58,8 @@ router.get('/:id', protect, restrictTo('ADMINISTRATOR'), getUserById);
  *     tags: [Users]
  */
 // PUT /api/users/:id → Update a user
+
+router.put('/profile', protect, updateProfile);
 router.put('/:id', protect, restrictTo('ADMINISTRATOR'), updateUser);
 
 /**
@@ -68,5 +71,6 @@ router.put('/:id', protect, restrictTo('ADMINISTRATOR'), updateUser);
  */
 // DELETE /api/users/:id → Delete a user
 router.delete('/:id', protect, restrictTo('ADMINISTRATOR'), deleteUser);
+
 
 module.exports = router;
