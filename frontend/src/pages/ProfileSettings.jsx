@@ -1,10 +1,41 @@
 import { useState } from "react";
+import axios from "axios";
 
 function ProfileSettings() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+const handleSaveProfile = async () => {
 
+  try {
+
+    const token = localStorage.getItem("token");
+
+    await axios.put(
+      "http://localhost:5001/api/users/profile",
+      {
+        name,
+        email
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+
+    alert("Profile updated successfully");
+
+  } catch (error) {
+
+    alert(
+      error.response?.data?.message ||
+      "Failed to update profile"
+    );
+
+  }
+
+};
   return (
     <div className="max-w-md mx-auto mt-10 p-6 border rounded-lg shadow">
       <h1 className="text-2xl font-bold mb-6 text-center">
@@ -62,7 +93,10 @@ function ProfileSettings() {
         />
       </div>
 
-      <button className="bg-green-500 text-white px-4 py-2 rounded w-full">
+      <button
+        onClick={handleSaveProfile}
+        className="bg-green-500 text-white px-4 py-2 rounded w-full"
+      >
         Save Changes
       </button>
     </div>
