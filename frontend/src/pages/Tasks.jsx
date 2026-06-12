@@ -26,7 +26,7 @@ const INITIAL_TASKS = [
 ];
 
 function Tasks() {
-  const [tasks, setTasks] = useState(INITIAL_TASKS);
+  const [tasks, setTasks] = useState([]);
 
   const [title, setTitle] = useState("");
   const [assignee, setAssignee] = useState("");
@@ -39,7 +39,7 @@ function Tasks() {
     },
   });
 
-  const columns = ["To Do", "In Progress", "Completed"];
+  const columns = ["TODO", "IN_PROGRESS", "COMPLETED"];
 
   // ----------------------------
   // LOAD TASKS FROM BACKEND
@@ -55,8 +55,8 @@ function Tasks() {
   
         console.log("TASKS FROM BACKEND:", res.data);
   
-        if (Array.isArray(res.data)) {
-          setTasks(res.data);
+        if (res.data.success) {
+         setTasks(res.data.tasks);
         }
       } catch (error) {
         console.log("BACKEND ERROR:", error.response?.data || error.message);
@@ -80,15 +80,15 @@ function Tasks() {
         API_URL,
         {
           title,
-          projectId: "1",
-          assignedUserId: "1",
+          projectId: "p4444444-4444-4444-4444-444444444444",
+          assignedUserId: "c3333333-3333-3333-3333-333333333333",
           priority: priority.toUpperCase(),
           status: "TODO",
         },
         getAuthHeader()
       );
   
-      setTasks((prev) => [res.data, ...prev]);
+      setTasks((prev) => [res.data.task, ...prev]);
   
       setTitle("");
       setAssignee("");
@@ -111,11 +111,11 @@ function Tasks() {
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case "To Do":
+      case "TODO":
         return "bg-gray-200 text-gray-700";
-      case "In Progress":
+      case "IN_PROGRESS":
         return "bg-blue-200 text-blue-700";
-      case "Completed":
+      case "COMPLETED":
         return "bg-green-200 text-green-700";
       default:
         return "bg-gray-100 text-gray-600";
@@ -124,11 +124,11 @@ function Tasks() {
 
   const getPriorityBadge = (priority) => {
     switch (priority) {
-      case "High":
+      case "HIGH":
         return "bg-red-200 text-red-700";
-      case "Medium":
+      case "MEDIUM":
         return "bg-yellow-200 text-yellow-700";
-      case "Low":
+      case "LOW":
         return "bg-green-200 text-green-700";
       default:
         return "bg-gray-200 text-gray-700";
@@ -215,7 +215,7 @@ function Tasks() {
                   </div>
 
                   <p className="text-xs text-gray-500 mt-2">
-                    {task.assignee}
+                    {task.assignedUser?.name}
                   </p>
 
                   <span
@@ -230,7 +230,7 @@ function Tasks() {
                     {task.status !== "To Do" && (
                       <button
                         onClick={() =>
-                          updateTaskStatus(task.id, "To Do")
+                          updateTaskStatus(task.id, "TODO")
                         }
                         className="text-xs px-2 py-1 bg-gray-200 rounded"
                       >
@@ -241,7 +241,7 @@ function Tasks() {
                     {task.status !== "In Progress" && (
                       <button
                         onClick={() =>
-                          updateTaskStatus(task.id, "In Progress")
+                          updateTaskStatus(task.id, "IN_PROGRESS")
                         }
                         className="text-xs px-2 py-1 bg-blue-200 rounded"
                       >
@@ -252,7 +252,7 @@ function Tasks() {
                     {task.status !== "Completed" && (
                       <button
                         onClick={() =>
-                          updateTaskStatus(task.id, "Completed")
+                          updateTaskStatus(task.id, "COMPLETED")
                         }
                         className="text-xs px-2 py-1 bg-green-200 rounded"
                       >
