@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 
 const INITIAL_TASKS = [
   {
@@ -31,37 +32,107 @@ function Tasks() {
   const [assignee, setAssignee] = useState("");
   const [priority, setPriority] = useState("Medium");
 
+  const API_URL = "http://localhost:5001/api/tasks";
+  const getAuthHeader = () => ({
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+
   const columns = ["To Do", "In Progress", "Completed"];
+
+  // ----------------------------
+  // LOAD TASKS FROM BACKEND
+  // ----------------------------
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const res = await axios.get(API_URL, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+  
+        console.log("TASKS FROM BACKEND:", res.data);
+  
+        if (Array.isArray(res.data)) {
+          setTasks(res.data);
+        }
+      } catch (error) {
+        console.log("BACKEND ERROR:", error.response?.data || error.message);
+      }
+    };
+  
+    fetchTasks();
+  }, []);
 
   const getTasksByStatus = (status) =>
     tasks.filter((task) => task.status === status);
 
-  // ✅ Add Task
-  const addTask = () => {
+  // ----------------------------
+  // ADD TASK (LOCAL FOR NOW)
+  // ----------------------------
+  const addTask = async () => {
     if (!title || !assignee) return;
-
-    const newTask = {
-      id: Date.now(),
-      title,
-      assignee,
-      priority,
-      status: "To Do",
-    };
-
-    setTasks((prev) => [newTask, ...prev]);
-
-    setTitle("");
-    setAssignee("");
-    setPriority("Medium");
+  
+    try {
+      const res = await axios.post(
+        API_URL,
+        {
+          title,
+          projectId: "1",
+          assignedUserId: "1",
+          priority: priority.toUpperCase(),
+          status: "TODO",
+        },
+        getAuthHeader()
+      );
+  
+      setTasks((prev) => [res.data, ...prev]);
+  
+      setTitle("");
+      setAssignee("");
+      setPriority("Medium");
+    } catch (error) {
+      console.log("Error adding task", error);
+    }
   };
 
-  // ✅ Move Task (NOW USED IN UI)
+  // ----------------------------
+  // UPDATE STATUS (LOCAL FOR NOW)
+  // ----------------------------
   const updateTaskStatus = (id, newStatus) => {
     setTasks((prev) =>
       prev.map((task) =>
         task.id === id ? { ...task, status: newStatus } : task
       )
     );
+  };
+
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case "To Do":
+        return "bg-gray-200 text-gray-700";
+      case "In Progress":
+        return "bg-blue-200 text-blue-700";
+      case "Completed":
+        return "bg-green-200 text-green-700";
+      default:
+        return "bg-gray-100 text-gray-600";
+    }
+  };
+
+  const getPriorityBadge = (priority) => {
+    switch (priority) {
+      case "High":
+        return "bg-red-200 text-red-700";
+      case "Medium":
+        return "bg-yellow-200 text-yellow-700";
+      case "Low":
+        return "bg-green-200 text-green-700";
+      default:
+        return "bg-gray-200 text-gray-700";
+    }
   };
 
   return (
@@ -109,53 +180,89 @@ function Tasks() {
       {/* Kanban Board */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {columns.map((col) => (
-          <div key={col} className="bg-gray-50 p-4 rounded-lg">
-            <h2 className="font-semibold mb-3">{col}</h2>
+          <div
+            key={col}
+            className="bg-slate-100 p-4 rounded-xl min-h-[500px] border shadow-sm"
+          >
+            <h2 className="font-semibold mb-3 flex justify-between items-center">
+              <span>{col}</span>
 
-            {getTasksByStatus(col).map((task) => (
-              <div
-                key={task.id}
-                className="bg-white p-3 mb-3 rounded shadow-sm border"
-              >
-                <h3 className="font-medium">{task.title}</h3>
+              <span className="bg-white px-2 py-1 rounded-full text-xs border">
+                {getTasksByStatus(col).length}
+              </span>
+            </h2>
 
-                <p className="text-xs text-gray-500">{task.assignee}</p>
-
-                <span className="text-xs text-blue-600">
-                  {task.priority}
-                </span>
-
-                {/* ✅ MOVE BUTTONS (THIS FIXES YOUR WARNING) */}
-                <div className="flex gap-2 mt-3 flex-wrap">
-  {task.status !== "To Do" && (
-    <button
-      onClick={() => updateTaskStatus(task.id, "To Do")}
-      className="text-xs px-2 py-1 bg-gray-200 rounded"
-    >
-      To Do
-    </button>
-  )}
-
-  {task.status !== "In Progress" && (
-    <button
-      onClick={() => updateTaskStatus(task.id, "In Progress")}
-      className="text-xs px-2 py-1 bg-blue-200 rounded"
-    >
-      In Progress
-    </button>
-  )}
-
-  {task.status !== "Completed" && (
-    <button
-      onClick={() => updateTaskStatus(task.id, "Completed")}
-      className="text-xs px-2 py-1 bg-green-200 rounded"
-    >
-      Done
-    </button>
-  )}
-</div>
+            {getTasksByStatus(col).length === 0 ? (
+              <div className="text-center text-gray-400 text-sm mt-6">
+                No tasks
               </div>
-            ))}
+            ) : (
+              getTasksByStatus(col).map((task) => (
+                <div
+                  key={task.id}
+                  className="bg-white p-3 mb-3 rounded-lg shadow-sm border hover:shadow-md transition"
+                >
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-medium">{task.title}</h3>
+
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full ${getStatusBadge(
+                        task.status
+                      )}`}
+                    >
+                      {task.status}
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-gray-500 mt-2">
+                    {task.assignee}
+                  </p>
+
+                  <span
+                    className={`inline-block mt-2 text-xs px-2 py-1 rounded-full ${getPriorityBadge(
+                      task.priority
+                    )}`}
+                  >
+                    {task.priority}
+                  </span>
+
+                  <div className="flex gap-2 mt-3 flex-wrap">
+                    {task.status !== "To Do" && (
+                      <button
+                        onClick={() =>
+                          updateTaskStatus(task.id, "To Do")
+                        }
+                        className="text-xs px-2 py-1 bg-gray-200 rounded"
+                      >
+                        To Do
+                      </button>
+                    )}
+
+                    {task.status !== "In Progress" && (
+                      <button
+                        onClick={() =>
+                          updateTaskStatus(task.id, "In Progress")
+                        }
+                        className="text-xs px-2 py-1 bg-blue-200 rounded"
+                      >
+                        In Progress
+                      </button>
+                    )}
+
+                    {task.status !== "Completed" && (
+                      <button
+                        onClick={() =>
+                          updateTaskStatus(task.id, "Completed")
+                        }
+                        className="text-xs px-2 py-1 bg-green-200 rounded"
+                      >
+                        Done
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         ))}
       </div>

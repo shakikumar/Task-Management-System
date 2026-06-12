@@ -27,6 +27,7 @@ function ChangePassword() {
   } else if (score >= 3) {
     strength = "Medium";
   }
+  // OLD VERSION (keep for reference)//
   const handleChangePassword = async () => {
     if (password !== confirmPassword) {
       alert("Passwords do not match");
@@ -62,6 +63,49 @@ function ChangePassword() {
       );
     }
   };
+  // NEW SAFE VERSION
+/*const handleChangePassword = async () => {
+  if (password !== confirmPassword) {
+    alert("Passwords do not match");
+    return;
+  }
+
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    alert("You are not logged in. Please login first.");
+    return;
+  }
+
+  try {
+    await axios.put(
+      "http://localhost:5001/api/auth/change-password",
+      {
+        currentPassword,
+        newPassword: password,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    alert("Password updated successfully");
+
+    setCurrentPassword("");
+    setPassword("");
+    setConfirmPassword("");
+
+  } catch (error) {
+    console.log(error);
+
+    alert(
+      error.response?.data?.message ||
+      "Failed to update password"
+    );
+  }
+};*/
   return (
     <div className="max-w-md mx-auto mt-10 p-6 border rounded-lg shadow">
       <h1 className="text-2xl font-bold mb-6 text-center">
