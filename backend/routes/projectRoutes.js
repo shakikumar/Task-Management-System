@@ -11,6 +11,9 @@ const router = express.Router();
 // Import security middlewares from Phase 1
 const { protect, restrictTo } = require('../middleware/authMiddleware');
 
+const taskService = require('../services/taskService');
+const { validateProjectId, handleValidationErrors } = require('../validators/taskValidator');
+
 // Import all 5 functions from projectController
 const {
   createProject,
@@ -69,5 +72,61 @@ router.put('/:id', protect, restrictTo('ADMINISTRATOR', 'PROJECT_MANAGER'), upda
  */
 // DELETE /api/projects/:id → Delete a project and all its tasks
 router.delete('/:id', protect, restrictTo('ADMINISTRATOR', 'PROJECT_MANAGER'), deleteProject);
+
+/**
+ * @swagger
+ * /api/projects/{projectId}/tasks:
+ *   get:
+ *     summary: Get tasks belonging to a specific project (Project Isolation)
+ *     tags: [Projects, Tasks]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: projectId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Project ID
+ *     responses:
+ *       200:
+ *         description: List of tasks for this project
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 count:
+ *                   type: integer
+ *                   example: 2
+ *                 tasks:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Task'
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Project not found
+ */
+router.get('/:projectId/tasks', protect, validateProjectId, handleValidationErrors, async (req, res) => {
+  try {
+    const tasks = await taskService.getTasksByProjectId(req.params.projectId, req.user);
+    return res.status(200).json({
+      success: true,
+      count: tasks.length,
+      tasks
+    });
+  } catch (error) {
+    const statusCode = error.statusCode || 500;
+    return res.status(statusCode).json({
+      success: false,
+      message: error.message || 'Failed to fetch project tasks'
+    });
+  }
+});
 
 module.exports = router;
