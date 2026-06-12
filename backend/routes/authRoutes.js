@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { login } = require('../controllers/authController');
+const { login, changePassword } = require('../controllers/authController');
+const { protect } = require('../middleware/authMiddleware');
 const { createUserOnboarding } = require('../controllers/userController');
 
 /**
@@ -78,5 +79,6 @@ router.post('/login', login);
  *         description: Internal Server Error
  */
 router.post('/onboard', createUserOnboarding);
+router.put('/change-password', protect, changePassword);
 
 module.exports = router;

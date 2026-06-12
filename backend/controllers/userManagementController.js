@@ -263,7 +263,42 @@ const updateUser = async (req, res) => {
     });
   }
 };
+const updateProfile = async (req, res) => {
+  try {
 
+    const { name, email } = req.body;
+
+    const updatedUser = await prisma.user.update({
+      where: {
+        id: req.user.id
+      },
+      data: {
+        name,
+        email
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true
+      }
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      user: updatedUser
+    });
+
+  } catch (error) {
+    console.error("Profile update error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update profile"
+    });
+  }
+};
 // ── DELETE USER ──────────────────────────────────────────────────────────────
 // DELETE /api/users/:id
 const deleteUser = async (req, res) => {
@@ -302,4 +337,11 @@ const deleteUser = async (req, res) => {
   }
 };
 
-module.exports = { createUser, getAllUsers, getUserById, updateUser, deleteUser };
+module.exports = {
+  createUser,
+  getAllUsers,
+  getUserById,
+  updateUser,
+  deleteUser,
+  updateProfile
+};
