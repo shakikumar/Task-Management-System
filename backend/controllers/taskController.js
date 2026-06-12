@@ -34,11 +34,12 @@ const createTask = async (req, res) => {
  */
 const getAllTasks = async (req, res) => {
   try {
-    const tasks = await taskService.getAllTasks(req.query, req.user);
+    const result = await taskService.getAllTasks(req.query, req.user);
     return res.status(200).json({
       success: true,
-      count: tasks.length,
-      tasks
+      count: result.tasks.length,
+      pagination: result.pagination,
+      tasks: result.tasks
     });
   } catch (error) {
     return mapErrorResponse(res, error, 'Failed to fetch tasks');
