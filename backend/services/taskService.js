@@ -59,32 +59,69 @@ const createTask = async (data) => {
 };
 
 /**
- * Retrieve all tasks with sorting and filtering.
+ * Retrieve all tasks with filtering, search, sorting and pagination.
  * Role-based isolation applied for COLLABORATORs.
  */
 const getAllTasks = async (filters, user) => {
   const where = {};
 
-  // Apply basic filters
+  // ---- FILTER 1: Status ----
+  // Example: ?status=TODO
   if (filters.status) {
     where.status = filters.status;
   }
+
+  // ---- FILTER 2: Priority ----
+  // Example: ?priority=HIGH
   if (filters.priority) {
     where.priority = filters.priority;
   }
+
+  // ---- FILTER 3: Project ----
+  // Example: ?projectId=abc-123
   if (filters.projectId) {
     where.projectId = filters.projectId;
   }
 
-  // Enforce Collaborator Isolation
+  // ---- FILTER 4: Role-based isolation ----
+  // Collaborators can ONLY see tasks assigned to them
+  // Admins and PMs can filter by any user
   if (user.role === 'COLLABORATOR') {
     where.assignedUserId = user.id;
   } else if (filters.assignedUserId) {
-    // Admins and PMs can filter by assigned user
     where.assignedUserId = filters.assignedUserId;
   }
 
-  // Construct Sorting
+  // ---- FILTER 5: Search by title (NEW!) ----
+  // Example: ?search=login
+  // This finds any task whose title CONTAINS the word "login"
+  // It works case-insensitively — "Login", "LOGIN", "login" all match
+  if (filters.search) {
+    where.title = {
+      contains: filters.search,
+      mode: 'insensitive'  // ignore uppercase/lowercase
+    };
+  }
+
+  // ---- FILTER 6: Date range (NEW!) ----
+  // Example: ?dueAfter=2026-01-01&dueBefore=2026-12-31
+  // This finds tasks due between two dates
+  if (filters.dueAfter || filters.dueBefore) {
+    where.dueDate = {};
+
+    // dueAfter means "due date must be after this date"
+    if (filters.dueAfter) {
+      where.dueDate.gte = new Date(filters.dueAfter); // gte = greater than or equal
+    }
+
+    // dueBefore means "due date must be before this date"
+    if (filters.dueBefore) {
+      where.dueDate.lte = new Date(filters.dueBefore); // lte = less than or equal
+    }
+  }
+
+  // ---- SORTING ----
+  // Example: ?sortBy=dueDate&sortOrder=asc
   const orderBy = [];
   if (filters.sortBy) {
     const field = filters.sortBy;
@@ -96,10 +133,28 @@ const getAllTasks = async (filters, user) => {
       orderBy.push({ createdAt: 'desc' });
     }
   } else {
-    // Default sort
+    // Default: show newest tasks first
     orderBy.push({ createdAt: 'desc' });
   }
 
+  // ---- PAGINATION (NEW!) ----
+  // Example: ?page=2&limit=10
+  // page = which page you want (default: 1)
+  // limit = how many tasks per page (default: 10, max: 100)
+
+  const page = parseInt(filters.page) || 1;    // which page? default page 1
+  const limit = Math.min(parseInt(filters.limit) || 10, 100); // how many per page? max 100
+  const skip = (page - 1) * limit;             // how many to skip
+
+  // Example: page=3, limit=10
+  // skip = (3-1) * 10 = 20  → skip first 20 tasks, start from task 21
+
+  // ---- GET TOTAL COUNT ----
+  // We need to know the TOTAL number of matching tasks
+  // so the frontend can show "Page 2 of 15" etc.
+  const totalCount = await prisma.task.count({ where });
+
+  // ---- GET THE ACTUAL TASKS ----
   const tasks = await prisma.task.findMany({
     where,
     include: {
@@ -110,10 +165,23 @@ const getAllTasks = async (filters, user) => {
         select: { id: true, name: true, email: true, role: true }
       }
     },
-    orderBy
+    orderBy,
+    skip,   // jump over previous pages
+    take: limit  // take only this many tasks
   });
 
-  return tasks;
+  // ---- RETURN TASKS + PAGINATION INFO ----
+  return {
+    tasks,
+    pagination: {
+      totalCount,                                    // total matching tasks
+      totalPages: Math.ceil(totalCount / limit),     // how many pages total
+      currentPage: page,                             // which page we're on
+      limit,                                         // tasks per page
+      hasNextPage: page < Math.ceil(totalCount / limit),   // is there a next page?
+      hasPrevPage: page > 1                          // is there a previous page?
+    }
+  };
 };
 
 /**
