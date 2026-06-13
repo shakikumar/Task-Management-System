@@ -9,6 +9,8 @@ import Users from "./pages/Users";
 import Tasks from "./pages/Tasks";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
+import ProfileSettings from "./pages/ProfileSettings";
+import ChangePassword from "./pages/ChangePassword";
 
 function App() {
   return (
@@ -29,6 +31,8 @@ function App() {
 
         <Route path="profile" element={<Profile />} />
         <Route path="settings" element={<Settings />} />
+        <Route path="profile-settings" element={<ProfileSettings />} />
+        <Route path="change-password" element={<ChangePassword />} />
       </Route>
 
       {/* fallback */}
