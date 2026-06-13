@@ -1,219 +1,211 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import TaskEditModal from "../components/TaskEditModal";
 
 function Tasks() {
-const [tasks, setTasks] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  const [users, setUsers] = useState([]);
 
-const [title, setTitle] = useState("");
-const [assignee, setAssignee] = useState("");
-const [priority, setPriority] = useState("Medium");
+  const [search, setSearch] = useState("");
+  const [title, setTitle] = useState("");
+  const [assignee, setAssignee] = useState("");
+  const [priority, setPriority] = useState("MEDIUM");
 
-const API_URL = "http://localhost:5001/api/tasks";
+  const [editingTask, setEditingTask] = useState(null);
 
-const getAuthHeader = () => ({
-headers: {
-Authorization: `Bearer ${localStorage.getItem("token")}`,
-},
-});
+  const API_URL = "http://localhost:5001/api/tasks";
 
-const columns = ["TODO", "IN_PROGRESS", "COMPLETED"];
+  const role = (localStorage.getItem("role") || "").toUpperCase();
 
-useEffect(() => {
-const fetchTasks = async () => {
-try {
-const res = await axios.get(API_URL, getAuthHeader());
+  const canEdit = () =>
+    role === "ADMIN" || role === "PROJECT_MANAGER";
 
-
-    if (res.data.success) {
-      setTasks(res.data.tasks);
-    }
-  } catch (error) {
-    console.log("BACKEND ERROR:", error.response?.data || error.message);
-  }
-};
-
-fetchTasks();
-
-
-}, []);
-
-const getTasksByStatus = (status) => {
-return tasks.filter((task) => task.status === status);
-};
-
-const addTask = async () => {
-if (!title || !assignee) return;
-
-
-try {
-  const res = await axios.post(
-    API_URL,
-    {
-      title,
-      projectId: "p4444444-4444-4444-4444-444444444444",
-      assignedUserId: "c3333333-3333-3333-3333-333333333333",
-      priority: priority.toUpperCase(),
-      status: "TODO",
+  const getAuthHeader = () => ({
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
-    getAuthHeader()
-  );
+  });
 
-  setTasks((prev) => [res.data.task, ...prev]);
+  useEffect(() => {
+    fetchTasks();
+    fetchUsers();
+  }, []);
 
-  setTitle("");
-  setAssignee("");
-  setPriority("Medium");
-} catch (error) {
-  console.log("Error adding task", error);
-}
+  const fetchTasks = async () => {
+    const res = await axios.get(API_URL, getAuthHeader());
+    if (res.data.success) setTasks(res.data.tasks);
+  };
 
+  const fetchUsers = async () => {
+    const res = await axios.get(
+      "http://localhost:5001/api/users",
+      getAuthHeader()
+    );
+    setUsers(res.data.users);
+  };
 
-};
+  const addTask = async () => {
+    if (!title || !assignee) return;
 
-const updateTaskStatus = (id, newStatus) => {
-setTasks((prev) =>
-prev.map((task) =>
-task.id === id ? { ...task, status: newStatus } : task
-)
-);
-};
+    const res = await axios.post(
+      API_URL,
+      {
+        title,
+        assignedUserId: assignee,
+        priority,
+        status: "TODO",
+        projectId: "p4444444-4444-4444-4444-444444444444",
+      },
+      getAuthHeader()
+    );
 
-const getStatusBadge = (status) => {
-switch (status) {
-case "TODO":
-return "bg-gray-200 text-gray-700";
-case "IN_PROGRESS":
-return "bg-blue-200 text-blue-700";
-case "COMPLETED":
-return "bg-green-200 text-green-700";
-default:
-return "bg-gray-100 text-gray-600";
-}
-};
+    setTasks([res.data.task, ...tasks]);
 
-const getPriorityBadge = (priority) => {
-switch (priority) {
-case "HIGH":
-return "bg-red-200 text-red-700";
-case "MEDIUM":
-return "bg-yellow-200 text-yellow-700";
-case "LOW":
-return "bg-green-200 text-green-700";
-default:
-return "bg-gray-200 text-gray-700";
-}
-};
+    setTitle("");
+    setAssignee("");
+    setPriority("MEDIUM");
+  };
 
-return ( <div className="p-6"> <h1 className="text-2xl font-bold mb-6">Tasks Board</h1>
+  const updateTask = async (id, data) => {
+    const res = await axios.put(
+      `${API_URL}/${id}`,
+      data,
+      getAuthHeader()
+    );
 
+    setTasks((prev) =>
+      prev.map((t) => (t._id === id ? res.data.task : t))
+    );
 
-  <div className="mb-6 bg-white p-4 rounded shadow-sm border">
-    <h2 className="font-semibold mb-3">Add New Task</h2>
+    setEditingTask(null);
+  };
 
-    <div className="flex gap-2 flex-wrap">
+  const updateStatus = async (id, status) => {
+    await axios.put(
+      `${API_URL}/${id}`,
+      { status },
+      getAuthHeader()
+    );
+
+    setTasks((prev) =>
+      prev.map((t) =>
+        t._id === id ? { ...t, status } : t
+      )
+    );
+  };
+
+  const filteredTasks = (status) =>
+    tasks.filter(
+      (t) =>
+        t.status === status &&
+        t.title.toLowerCase().includes(search.toLowerCase())
+    );
+
+  const columns = ["TODO", "IN_PROGRESS", "COMPLETED"];
+
+  return (
+    <div className="p-6">
+      <h1 className="text-xl font-bold mb-4">Task Board</h1>
+
+      {/* SEARCH */}
       <input
-        className="border p-2 rounded"
-        placeholder="Task title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
+        className="border p-2 w-full mb-4"
+        placeholder="Search tasks..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
       />
 
-      <input
-        className="border p-2 rounded"
-        placeholder="Assignee"
-        value={assignee}
-        onChange={(e) => setAssignee(e.target.value)}
-      />
+      {/* ADD TASK */}
+      <div className="mb-6 p-4 border">
+        <h2 className="font-bold mb-2">Add Task</h2>
 
-      <select
-        className="border p-2 rounded"
-        value={priority}
-        onChange={(e) => setPriority(e.target.value)}
-      >
-        <option>High</option>
-        <option>Medium</option>
-        <option>Low</option>
-      </select>
+        <input
+          className="border p-2 mr-2"
+          placeholder="Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
 
-      <button
-        onClick={addTask}
-        className="px-4 py-2 bg-green-600 text-white rounded"
-      >
-        Add Task
-      </button>
-    </div>
-  </div>
+        {/* ASSIGNEE DROPDOWN */}
+        <select
+          className="border p-2 mr-2"
+          value={assignee}
+          onChange={(e) => setAssignee(e.target.value)}
+        >
+          <option value="">Select User</option>
+          {users.map((u) => (
+            <option key={u._id} value={u._id}>
+              {u.name}
+            </option>
+          ))}
+        </select>
 
-  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-    {columns.map((col) => (
-      <div
-        key={col}
-        className="bg-slate-100 p-4 rounded-xl min-h-[500px] border shadow-sm"
-      >
-        <h2 className="font-semibold mb-3">
-          {col}
-        </h2>
+        <select
+          className="border p-2 mr-2"
+          value={priority}
+          onChange={(e) => setPriority(e.target.value)}
+        >
+          <option value="HIGH">High</option>
+          <option value="MEDIUM">Medium</option>
+          <option value="LOW">Low</option>
+        </select>
 
-        {getTasksByStatus(col).map((task) => (
-          <div
-            key={task.id}
-            className="bg-white p-3 mb-3 rounded-lg shadow-sm border"
-          >
-            <h3 className="font-medium">{task.title}</h3>
+        <button
+          disabled={!canEdit()}
+          onClick={addTask}
+          className="bg-green-600 text-white px-3 py-1"
+        >
+          Add Task
+        </button>
+      </div>
 
-            <p className="text-xs text-gray-500 mt-2">
-              {task.assignedUser?.name}
-            </p>
+      {/* BOARD */}
+      <div className="grid grid-cols-3 gap-4">
+        {columns.map((col) => (
+          <div key={col} className="border p-3">
+            <h2 className="font-bold mb-2">{col}</h2>
 
-            <span
-              className={`inline-block mt-2 text-xs px-2 py-1 rounded-full ${getPriorityBadge(
-                task.priority
-              )}`}
-            >
-              {task.priority}
-            </span>
+            {filteredTasks(col).map((task) => (
+              <div key={task._id} className="border p-2 mb-2">
+                <h3>{task.title}</h3>
 
-            <div className="mt-2">
-              <span
-                className={`text-xs px-2 py-1 rounded-full ${getStatusBadge(
-                  task.status
-                )}`}
-              >
-                {task.status}
-              </span>
-            </div>
+                <p className="text-sm text-gray-500">
+                  {task.assignedUser?.name || "Unassigned"}
+                </p>
 
-            <div className="flex gap-2 mt-3 flex-wrap">
-              <button
-                onClick={() => updateTaskStatus(task.id, "TODO")}
-                className="text-xs px-2 py-1 bg-gray-200 rounded"
-              >
-                To Do
-              </button>
+                {/* STATUS */}
+                <div className="flex gap-1 mt-2">
+                  <button onClick={() => updateStatus(task._id, "TODO")}>T</button>
+                  <button onClick={() => updateStatus(task._id, "IN_PROGRESS")}>P</button>
+                  <button onClick={() => updateStatus(task._id, "COMPLETED")}>D</button>
+                </div>
 
-              <button
-                onClick={() => updateTaskStatus(task.id, "IN_PROGRESS")}
-                className="text-xs px-2 py-1 bg-blue-200 rounded"
-              >
-                In Progress
-              </button>
-
-              <button
-                onClick={() => updateTaskStatus(task.id, "COMPLETED")}
-                className="text-xs px-2 py-1 bg-green-200 rounded"
-              >
-                Done
-              </button>
-            </div>
+                {/* EDIT */}
+                {canEdit() && (
+                  <button
+                    className="mt-2 text-blue-600"
+                    onClick={() => setEditingTask(task)}
+                  >
+                    Edit
+                  </button>
+                )}
+              </div>
+            ))}
           </div>
         ))}
       </div>
-    ))}
-  </div>
-</div>
 
-
-);
+      {/* MODAL */}
+      {editingTask && (
+        <TaskEditModal
+          task={editingTask}
+          users={users}
+          onClose={() => setEditingTask(null)}
+          onSave={updateTask}
+        />
+      )}
+    </div>
+  );
 }
 
 export default Tasks;
