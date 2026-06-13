@@ -11,7 +11,9 @@ const prisma = require('../config/prisma');
 // POST /api/projects
 const createProject = async (req, res) => {
   try {
-    const { name, description } = req.body;
+    const { name, description, status, ownerId } = req.body;
+    
+    console.log("STATUS RECEIVED:", status);
 
     // Name is required
     if (!name || name.trim() === '') {
@@ -34,7 +36,8 @@ const createProject = async (req, res) => {
       data: {
         name: name.trim(),
         description: description?.trim(),
-        createdById: req.user.id,
+        status: status || "PLANNING",
+        createdById: ownerId || req.user.id,
       },
       include: {
         createdBy: {

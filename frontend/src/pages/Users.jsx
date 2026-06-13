@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import axios from "axios";
 
 /* -------------------------------------------------------------------------- */
 /*  Users Page (API-ready structure)                                          */
@@ -77,14 +78,37 @@ function StatCard({ label, value, icon, bg, text }) {
 function Users() {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("All Roles");
-  const [users, setUsers] = useState(INITIAL_USERS);
+  const [users, setUsers] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     role: "Administrator",
   });
-  
+  useEffect(() => {
+  fetchUsers();
+}, []);
+
+  const fetchUsers = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await axios.get(
+        "http://localhost:5001/api/users",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setUsers(response.data.users);
+      }
+    } catch (error) {
+      console.error("Error loading users:", error);
+    }
+  };
 
   const filteredUsers = useMemo(() => {
     const q = search.toLowerCase().trim();

@@ -40,19 +40,28 @@ model User {
 // ==========================================
 // 2. PROJECT ENTITY (Parent Container)
 // ==========================================
+enum ProjectStatus {
+  PLANNING
+  IN_PROGRESS
+  ACTIVE
+  COMPLETED
+}
+
 model Project {
   id          String   @id @default(uuid())
-  name        String // Matches your guide
+  name        String
   description String?
+
+  status      ProjectStatus @default(PLANNING)
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  // Relational Links
   createdById String
-  createdBy   User   @relation("ProjectOwner", fields: [createdById], references: [id], onDelete: Restrict)
-  tasks       Task[]
-}
+  createdBy   User @relation("ProjectOwner", fields: [createdById], references: [id])
 
+  tasks Task[]
+}
 // ==========================================
 // 3. TASK ENTITY (Child Work Items)
 // ==========================================
