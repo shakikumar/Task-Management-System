@@ -23,7 +23,7 @@ const fetchTasks = async () => {
 try {
 const res = await axios.get(API_URL, getAuthHeader());
 
-```
+
     if (res.data.success) {
       setTasks(res.data.tasks);
     }
@@ -33,7 +33,7 @@ const res = await axios.get(API_URL, getAuthHeader());
 };
 
 fetchTasks();
-```
+
 
 }, []);
 
@@ -44,7 +44,7 @@ return tasks.filter((task) => task.status === status);
 const addTask = async () => {
 if (!title || !assignee) return;
 
-```
+
 try {
   const res = await axios.post(
     API_URL,
@@ -66,7 +66,7 @@ try {
 } catch (error) {
   console.log("Error adding task", error);
 }
-```
+
 
 };
 
@@ -106,7 +106,7 @@ return "bg-gray-200 text-gray-700";
 
 return ( <div className="p-6"> <h1 className="text-2xl font-bold mb-6">Tasks Board</h1>
 
-```
+
   <div className="mb-6 bg-white p-4 rounded shadow-sm border">
     <h2 className="font-semibold mb-3">Add New Task</h2>
 
