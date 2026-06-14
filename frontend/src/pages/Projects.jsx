@@ -117,7 +117,11 @@ function Projects() {
   }
   // REPLACE YOUR OLD handleDeleteProject FUNCTION WITH THIS ONE:
   async function handleDeleteProject(id) {
-    if (!window.confirm("Are you sure you want to delete this project?")) return;
+    const confirmDelete = window.confirm(
+    "Are you sure you want to delete this project?"
+  );
+
+  if (!confirmDelete) return;
 
     try {
       const token = localStorage.getItem('token');

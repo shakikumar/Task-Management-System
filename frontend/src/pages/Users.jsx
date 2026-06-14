@@ -156,6 +156,11 @@ function Users() {
   }), [users]);
 
   const handleDelete = async (id) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this user?"
+    );
+
+    if (!confirmDelete) return;
     try {
       const token = localStorage.getItem("token");
 
@@ -237,10 +242,11 @@ function Users() {
           icon="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0" />
 
         <StatCard label="Managers" value={stats.managers} bg="bg-violet-50" text="text-violet-600"
-          icon="M20.25 14.15v4.25c0..." />
+          icon="M15 19.128a9.38 9.38 0 002.625.372A9.337 9.337 0 0021 12c0-4.97-4.03-9-9-9s-9 4.03-9 9a9.337 9.337 0 003.375 7.5"/>
 
         <StatCard label="Collaborators" value={stats.collaborators} bg="bg-slate-100" text="text-slate-600"
-          icon="M18 18.72a9.094 9.094 0..." />
+          icon="M18 18.72a9.094 9.094 0 003.742-.479A3 3 0 0018 15.75h-1.5"
+ />
       </div>
 
       {/* Filters */}
