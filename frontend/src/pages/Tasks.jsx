@@ -2,29 +2,6 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 
 
-const INITIAL_TASKS = [
-  {
-    id: 1,
-    title: "Setup project structure",
-    status: "To Do",
-    priority: "High",
-    assignee: "Sarah Chen",
-  },
-  {
-    id: 2,
-    title: "Design login page UI",
-    status: "In Progress",
-    priority: "Medium",
-    assignee: "Marcus Webb",
-  },
-  {
-    id: 3,
-    title: "Fix sidebar layout bug",
-    status: "Completed",
-    priority: "Low",
-    assignee: "Elena Rodriguez",
-  },
-];
 
 function Tasks() {
   const [tasks, setTasks] = useState([]);
@@ -37,6 +14,9 @@ function Tasks() {
 
   const [selectedProject, setSelectedProject] = useState("");
   const [selectedUser, setSelectedUser] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [priorityFilter, setPriorityFilter] = useState("");
 
 
   const API_URL = "http://localhost:5001/api/tasks";
@@ -111,8 +91,32 @@ function Tasks() {
     fetchUsers();
   }, []);
 
+  const filteredTasks = tasks.filter((task) => {
+
+    const matchesSearch =
+      task.title
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase());
+
+    const matchesStatus =
+      !statusFilter ||
+      task.status === statusFilter;
+
+    const matchesPriority =
+      !priorityFilter ||
+      task.priority === priorityFilter;
+
+    return (
+      matchesSearch &&
+      matchesStatus &&
+      matchesPriority
+    );
+  });
+
   const getTasksByStatus = (status) =>
-    tasks.filter((task) => task.status === status);
+    filteredTasks.filter(
+      (task) => task.status === status
+    );
 
   // ----------------------------
   // ADD TASK (LOCAL FOR NOW)
@@ -292,6 +296,40 @@ function Tasks() {
           </button>
         </div>
       </div>
+      <div className="flex gap-3 mb-6 flex-wrap">
+
+        <input
+          type="text"
+          placeholder="Search task..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="border p-2 rounded"
+        />
+
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="border p-2 rounded"
+        >
+          <option value="">All Status</option>
+          <option value="TODO">To Do</option>
+          <option value="IN_PROGRESS">In Progress</option>
+          <option value="COMPLETED">Completed</option>
+        </select>
+
+        <select
+          value={priorityFilter}
+          onChange={(e) => setPriorityFilter(e.target.value)}
+          className="border p-2 rounded"
+        >
+          <option value="">All Priority</option>
+          <option value="HIGH">High</option>
+          <option value="MEDIUM">Medium</option>
+          <option value="LOW">Low</option>
+        </select>
+
+      </div>
+
 
       {/* Kanban Board */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

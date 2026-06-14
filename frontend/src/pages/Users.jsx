@@ -5,18 +5,7 @@ import axios from "axios";
 /*  Users Page (API-ready structure)                                          */
 /* -------------------------------------------------------------------------- */
 
-const INITIAL_USERS = [
-  { id: 1, name: "Sarah Chen", email: "sarah.chen@taskflow.io", role: "Administrator", status: "Active", assignedProjects: 8, lastActive: "2 min ago", initials: "SC" },
-  { id: 2, name: "Marcus Webb", email: "marcus.webb@taskflow.io", role: "Project Manager", status: "Active", assignedProjects: 5, lastActive: "18 min ago", initials: "MW" },
-  { id: 3, name: "Elena Rodriguez", email: "elena.r@taskflow.io", role: "Collaborator", status: "Active", assignedProjects: 3, lastActive: "1 hr ago", initials: "ER" },
-  { id: 4, name: "James Okonkwo", email: "james.okonkwo@taskflow.io", role: "Project Manager", status: "Inactive", assignedProjects: 4, lastActive: "3 days ago", initials: "JO" },
-  { id: 5, name: "Priya Sharma", email: "priya.sharma@taskflow.io", role: "Collaborator", status: "Active", assignedProjects: 6, lastActive: "45 min ago", initials: "PS" },
-  { id: 6, name: "Alex Morgan", email: "alex.morgan@taskflow.io", role: "Administrator", status: "Active", assignedProjects: 7, lastActive: "5 min ago", initials: "AM" },
-  { id: 7, name: "David Kim", email: "david.kim@taskflow.io", role: "Collaborator", status: "Invited", assignedProjects: 0, lastActive: "Never", initials: "DK" },
-  { id: 8, name: "Rachel Foster", email: "rachel.foster@taskflow.io", role: "Project Manager", status: "Active", assignedProjects: 4, lastActive: "Yesterday", initials: "RF" },
-  { id: 9, name: "Tom Hughes", email: "tom.hughes@taskflow.io", role: "Collaborator", status: "Inactive", assignedProjects: 2, lastActive: "1 week ago", initials: "TH" },
-  { id: 10, name: "Nina Patel", email: "nina.patel@taskflow.io", role: "Collaborator", status: "Active", assignedProjects: 5, lastActive: "30 min ago", initials: "NP" },
-];
+
 
 const ROLE_OPTIONS = [
   { value: "All Roles", label: "All Roles" },

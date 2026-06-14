@@ -2,33 +2,17 @@ import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios'; // Ensure axios is imported
 
 /* -------------------------------------------------------------------------- */
-/*  Sample Projects                                                          */
+/*  Sample Projects      no need                                                    */
 /* -------------------------------------------------------------------------- */
 
-const INITIAL_PROJECTS = [
-  {
-    id: 1,
-    name: "Task Management System",
-    description: "Build full-stack task management app",
-    owner: "Unassigned",
-    status: "Active",
-    members: 5,
-  },
-  {
-    id: 2,
-    name: "Lost & Found Platform",
-    description: "Campus-based item tracking system",
-    owner: "Unassigned",
-    status: "In Progress",
-    members: 3,
-  },
-];
 
 /* -------------------------------------------------------------------------- */
 
 function Projects() {
   const [projects, setProjects] = useState([]);
   const [users, setUsers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
   useEffect(() => {
     const fetchProjects = async () => {
       try {
@@ -151,6 +135,19 @@ function Projects() {
       alert(error.response?.data?.message || "Failed to delete project.");
     }
   }
+  const filteredProjects = projects.filter((project) => {
+
+    const matchesSearch =
+      project.name
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase());
+
+    const matchesStatus =
+      !statusFilter ||
+      project.status === statusFilter;
+
+    return matchesSearch && matchesStatus;
+  });
   return (
     <div className="p-6">
 
@@ -193,11 +190,35 @@ function Projects() {
         </div>
 
       </div>
+      <div className="flex gap-3 mb-6">
+
+        <input
+          type="text"
+          placeholder="Search project..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="border p-2 rounded w-64"
+        />
+
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="border p-2 rounded"
+        >
+          <option value="">All Status</option>
+          <option value="PLANNING">Planning</option>
+          <option value="IN_PROGRESS">In Progress</option>
+          <option value="ACTIVE">Active</option>
+          <option value="COMPLETED">Completed</option>
+        </select>
+
+      </div>
 
       {/* Projects */}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 
-        {projects.map(project => (
+        {filteredProjects.map(project => (
           <div key={project.id} className="border rounded-lg p-4 bg-white">
             <h2 className="font-semibold text-lg">{project.name}</h2>
             <p className="text-sm text-gray-500">{project.description}</p>
