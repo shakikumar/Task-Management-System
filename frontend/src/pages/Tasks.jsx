@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
+
 const INITIAL_TASKS = [
   {
     id: 1,
@@ -31,6 +32,12 @@ function Tasks() {
   const [title, setTitle] = useState("");
   const [assignee, setAssignee] = useState("");
   const [priority, setPriority] = useState("Medium");
+  const [projects, setProjects] = useState([]);
+  const [users, setUsers] = useState([]);
+
+  const [selectedProject, setSelectedProject] = useState("");
+  const [selectedUser, setSelectedUser] = useState("");
+
 
   const API_URL = "http://localhost:5001/api/tasks";
   const getAuthHeader = () => ({
@@ -52,18 +59,56 @@ function Tasks() {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
-  
+
         console.log("TASKS FROM BACKEND:", res.data);
-  
+
         if (res.data.success) {
-         setTasks(res.data.tasks);
+          setTasks(res.data.tasks);
         }
       } catch (error) {
         console.log("BACKEND ERROR:", error.response?.data || error.message);
       }
     };
-  
+
     fetchTasks();
+  }, []);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const res = await axios.get(
+          "http://localhost:5001/api/projects",
+          getAuthHeader()
+        );
+
+        if (res.data.success) {
+          setProjects(res.data.projects);
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    fetchProjects();
+  }, []);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await axios.get(
+          "http://localhost:5001/api/users",
+          getAuthHeader()
+        );
+
+        if (res.data.success) {
+          setUsers(res.data.users);
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    fetchUsers();
   }, []);
 
   const getTasksByStatus = (status) =>
@@ -73,40 +118,84 @@ function Tasks() {
   // ADD TASK (LOCAL FOR NOW)
   // ----------------------------
   const addTask = async () => {
-    if (!title || !assignee) return;
-  
+    if (!title || !selectedProject || !selectedUser) {
+      alert("Please select project and user");
+      return;
+    }
+
     try {
       const res = await axios.post(
         API_URL,
         {
           title,
-          projectId: "p4444444-4444-4444-4444-444444444444",
-          assignedUserId: "c3333333-3333-3333-3333-333333333333",
+          projectId: selectedProject,
+          assignedUserId: selectedUser,
           priority: priority.toUpperCase(),
           status: "TODO",
         },
         getAuthHeader()
       );
-  
+
       setTasks((prev) => [res.data.task, ...prev]);
-  
+
       setTitle("");
       setAssignee("");
       setPriority("Medium");
     } catch (error) {
-      console.log("Error adding task", error);
+      console.log("FULL ERROR:", error.response?.data);
     }
   };
 
   // ----------------------------
   // UPDATE STATUS (LOCAL FOR NOW)
   // ----------------------------
-  const updateTaskStatus = (id, newStatus) => {
-    setTasks((prev) =>
-      prev.map((task) =>
-        task.id === id ? { ...task, status: newStatus } : task
-      )
+  const updateTaskStatus = async (id, newStatus) => {
+    try {
+      const res = await axios.put(
+        `${API_URL}/${id}`,
+        {
+          status: newStatus
+        },
+        getAuthHeader()
+      );
+
+      if (res.data.success) {
+        setTasks((prev) =>
+          prev.map((task) =>
+            task.id === id
+              ? res.data.task
+              : task
+          )
+        );
+      }
+
+    } catch (error) {
+      console.log("Status update failed:", error);
+    }
+  };
+
+  const deleteTask = async (id) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this task?"
     );
+
+    if (!confirmDelete) return;
+
+    try {
+      const res = await axios.delete(
+        `${API_URL}/${id}`,
+        getAuthHeader()
+      );
+
+      if (res.data.success) {
+        setTasks((prev) =>
+          prev.filter((task) => task.id !== id)
+        );
+      }
+
+    } catch (error) {
+      console.log("Delete failed:", error);
+    }
   };
 
   const getStatusBadge = (status) => {
@@ -151,12 +240,39 @@ function Tasks() {
             onChange={(e) => setTitle(e.target.value)}
           />
 
-          <input
+          <select
+            value={selectedUser}
+            onChange={(e) => setSelectedUser(e.target.value)}
             className="border p-2 rounded"
-            placeholder="Assignee"
-            value={assignee}
-            onChange={(e) => setAssignee(e.target.value)}
-          />
+          >
+            <option value="">Select User</option>
+
+            {users.map((user) => (
+              <option
+                key={user.id}
+                value={user.id}
+              >
+                {user.name}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={selectedProject}
+            onChange={(e) => setSelectedProject(e.target.value)}
+            className="border p-2 rounded"
+          >
+            <option value="">Select Project</option>
+
+            {projects.map((project) => (
+              <option
+                key={project.id}
+                value={project.id}
+              >
+                {project.name}
+              </option>
+            ))}
+          </select>
 
           <select
             className="border p-2 rounded"
@@ -215,7 +331,11 @@ function Tasks() {
                   </div>
 
                   <p className="text-xs text-gray-500 mt-2">
-                    {task.assignedUser?.name}
+                    👤 {task.assignedUser?.name}
+                  </p>
+
+                  <p className="text-xs text-blue-600">
+                    📁 {task.project?.name}
                   </p>
 
                   <span
@@ -259,6 +379,12 @@ function Tasks() {
                         Done
                       </button>
                     )}
+                    <button
+                      onClick={() => deleteTask(task.id)}
+                      className="text-xs px-2 py-1 bg-red-500 text-white rounded"
+                    >
+                      Delete
+                    </button>
                   </div>
                 </div>
               ))

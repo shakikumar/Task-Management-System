@@ -113,14 +113,28 @@ const getAllUsers = async (req, res) => {
         mustResetPassword: true,
         createdAt: true,
         updatedAt: true,
+
+        _count: {
+          select: {
+            ownedProjects: true
+          }
+        }
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: {
+        createdAt: "desc"
+      }
     });
+
+    const formattedUsers = users.map(user => ({
+      ...user,
+      assignedProjects: user._count.ownedProjects,
+      lastActive: user.updatedAt
+    }));
 
     return res.status(200).json({
       success: true,
-      count: users.length,
-      users: users
+      count: formattedUsers.length,
+      users: formattedUsers
     });
 
   } catch (error) {

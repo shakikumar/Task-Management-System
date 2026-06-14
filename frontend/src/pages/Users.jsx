@@ -187,11 +187,32 @@ function Users() {
     }
   };
 
-  function handleRoleChange(id, role) {
-    setUsers((prev) =>
-      prev.map((user) => (user.id === id ? { ...user, role } : user))
-    );
-  }
+  const handleRoleChange = async (id, role) => {
+    try {
+
+      const token = localStorage.getItem("token");
+
+      const response = await axios.put(
+        `http://localhost:5001/api/users/${id}`,
+        {
+          role
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      if (response.data.success) {
+        await fetchUsers();
+      }
+
+    } catch (error) {
+      console.error(error);
+      alert("Failed to update role");
+    }
+  };
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
@@ -221,7 +242,7 @@ function Users() {
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
         <StatCard label="Total Users" value={stats.total} bg="bg-indigo-50" text="text-indigo-600"
-          icon="M15 19.128a9.38 9.38 0 002.625..." />
+          icon="" />
 
         <StatCard label="Active Users" value={stats.active} bg="bg-emerald-50" text="text-emerald-600"
           icon="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0" />
@@ -277,9 +298,17 @@ function Users() {
               <tr key={u.id} className="border-b hover:bg-slate-50">
                 <td className="p-3">{u.name}</td>
                 <td><RoleBadge role={u.role} /></td>
-                <td><StatusBadge status={u.status} /></td>
+                <td>
+                  <StatusBadge
+                    status={u.isActive ? "Active" : "Inactive"}
+                  />
+                </td>
                 <td>{u.assignedProjects}</td>
-                <td>{u.lastActive}</td>
+                <td>
+                  {u.lastActive
+                    ? new Date(u.lastActive).toLocaleString()
+                    : "-"}
+                </td>
                 <td className="p-3">
                   <div className="flex items-center justify-end gap-2">
                     <select

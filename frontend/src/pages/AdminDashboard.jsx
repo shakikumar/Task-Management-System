@@ -2,6 +2,9 @@
 /* -------------------------------------------------------------------------- */
 /*  Placeholder data — replace with API responses in production               */
 /* -------------------------------------------------------------------------- */
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const STATS = [
   {
@@ -103,62 +106,6 @@ const TEAM_MEMBERS = [
   { id: 6, name: "Alex Morgan", role: "Product Owner", initials: "AM", status: "online", tasks: 4, department: "Product" },
 ];
 
-const ACTIVITY = [
-  {
-    id: 1,
-    user: "Marcus Webb",
-    action: "completed task",
-    target: "API integration testing",
-    project: "API Gateway Migration",
-    time: "2 min ago",
-    type: "complete",
-  },
-  {
-    id: 2,
-    user: "Sarah Chen",
-    action: "created project",
-    target: "Q3 Roadmap Planning",
-    project: "Operations",
-    time: "18 min ago",
-    type: "create",
-  },
-  {
-    id: 3,
-    user: "Elena Rodriguez",
-    action: "uploaded design",
-    target: "Dashboard wireframes v3",
-    project: "Mobile App Redesign",
-    time: "45 min ago",
-    type: "upload",
-  },
-  {
-    id: 4,
-    user: "James Okonkwo",
-    action: "reported bug",
-    target: "Login redirect on Safari",
-    project: "Customer Portal v2",
-    time: "1 hr ago",
-    type: "bug",
-  },
-  {
-    id: 5,
-    user: "Priya Sharma",
-    action: "deployed to staging",
-    target: "Release 2.4.1",
-    project: "API Gateway Migration",
-    time: "2 hrs ago",
-    type: "deploy",
-  },
-  {
-    id: 6,
-    user: "Alex Morgan",
-    action: "assigned task",
-    target: "User acceptance testing",
-    project: "Customer Portal v2",
-    time: "3 hrs ago",
-    type: "assign",
-  },
-];
 
 /* -------------------------------------------------------------------------- */
 /*  Shared UI helpers                                                         */
@@ -183,11 +130,17 @@ function StatusBadge({ status }) {
   const styles = {
     "In Progress": "bg-blue-50 text-blue-700 ring-blue-600/20",
     "In Review": "bg-violet-50 text-violet-700 ring-violet-600/20",
-    Planning: "bg-slate-100 text-slate-600 ring-slate-500/20",
-    Critical: "bg-red-50 text-red-700 ring-red-600/20",
-    High: "bg-orange-50 text-orange-700 ring-orange-600/20",
-    Medium: "bg-amber-50 text-amber-700 ring-amber-600/20",
-    Low: "bg-slate-100 text-slate-600 ring-slate-500/20",
+    PLANNING:
+      "bg-slate-100 text-slate-700",
+
+    ACTIVE:
+      "bg-green-100 text-green-700",
+
+    IN_PROGRESS:
+      "bg-blue-100 text-blue-700",
+
+    COMPLETED:
+      "bg-emerald-100 text-emerald-700",
   };
 
   return (
@@ -251,16 +204,17 @@ function StatCard({ label, value, change, trend, icon, accent, bg, text }) {
   );
 }
 
-function RecentProjects() {
+function RecentProjects({ projects, navigate }) {
   return (
     <section className="rounded-xl border border-slate-200/80 bg-white shadow-sm">
-      <header className="flex flex-col gap-1 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+      <header className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
         <div>
           <h2 className="text-base font-semibold text-slate-900">Recent Projects</h2>
           <p className="text-sm text-slate-500">Track progress across active workspaces</p>
         </div>
         <button
           type="button"
+          onClick={() => navigate("/admin/projects")}
           className="mt-2 text-sm font-medium text-indigo-600 transition-colors hover:text-indigo-700 sm:mt-0"
         >
           View all projects →
@@ -268,43 +222,44 @@ function RecentProjects() {
       </header>
 
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[640px] text-left text-sm">
+        <table className="w-[75%]">
           <thead>
             <tr className="border-b border-slate-100 text-xs font-semibold uppercase tracking-wider text-slate-500">
-              <th className="px-5 py-3 sm:px-6">Project</th>
-              <th className="px-3 py-3">Status</th>
-              <th className="px-3 py-3">Progress</th>
-              <th className="px-3 py-3">Due Date</th>
-              <th className="px-5 py-3 sm:px-6">Priority</th>
+              <th className="w-[50%] px-6 py-3">
+                Project
+              </th>
+
+              <th className="w-[25%] px-6 py-3 text-center">
+                Status
+              </th>
+
+              <th className="w-[25%] px-6 py-3 text-center">
+                Created Date
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {RECENT_PROJECTS.map((project) => (
+            {projects.map((project) => (
               <tr
                 key={project.id}
                 className="transition-colors hover:bg-slate-50/80"
               >
-                <td className="px-5 py-4 sm:px-6">
-                  <p className="font-medium text-slate-900">{project.name}</p>
-                  <p className="text-xs text-slate-500">{project.team}</p>
+                <td className="w-[50%] px-6 py-4">
+                  <p
+                    className="font-semibold text-slate-900 cursor-pointer hover:text-indigo-600"
+                    onClick={() => navigate("/admin/projects")}
+                  >
+                    {project.name}
+                  </p>
                 </td>
-                <td className="px-3 py-4">
-                  <StatusBadge status={project.status} />
+
+
+                <td className="w-[25%] px-6 py-4 text-center">
+                  <StatusBadge status={project.status?.replaceAll("_", " ")} />
                 </td>
-                <td className="px-3 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="h-1.5 w-24 overflow-hidden rounded-full bg-slate-100">
-                      <div
-                        className="h-full rounded-full bg-indigo-500 transition-all"
-                        style={{ width: `${project.progress}%` }}
-                      />
-                    </div>
-                    <span className="text-xs font-medium text-slate-600">{project.progress}%</span>
-                  </div>
-                </td>
-                <td className="px-3 py-4 text-slate-600">{project.dueDate}</td>
-                <td className="px-5 py-4 sm:px-6">
-                  <StatusBadge status={project.priority} />
+
+                <td className="w-[25%] px-6 py-4 text-center">
+                  {new Date(project.createdAt).toLocaleDateString("en-GB")}
                 </td>
               </tr>
             ))}
@@ -315,33 +270,36 @@ function RecentProjects() {
   );
 }
 
-function TeamMembers() {
+function TeamMembers({ users }) {
   return (
     <section className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6">
       <header className="mb-5">
-        <h2 className="text-base font-semibold text-slate-900">Team Members</h2>
-        <p className="text-sm text-slate-500">People actively contributing this week</p>
+        <h2 className="text-base font-semibold text-slate-900">
+          Team Members
+        </h2>
+        <p className="text-sm text-slate-500">
+          System Users
+        </p>
       </header>
 
       <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {TEAM_MEMBERS.map((member) => (
+        {users.slice(0, 6).map((user) => (
           <li
-            key={member.id}
-            className="flex items-center gap-3 rounded-lg border border-slate-100 p-3 transition-all hover:border-slate-200 hover:bg-slate-50/50 hover:shadow-sm"
+            key={user.id}
+            className="flex items-center gap-3 rounded-lg border border-slate-100 p-3"
           >
-            <div className="relative shrink-0">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-xs font-semibold text-white">
-                {member.initials}
-              </div>
-              <OnlineIndicator status={member.status} />
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-600 text-white">
+              {user.name?.charAt(0).toUpperCase()}
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate font-medium text-slate-900">{member.name}</p>
-              <p className="truncate text-xs text-slate-500">{member.role}</p>
-            </div>
-            <div className="shrink-0 text-right">
-              <p className="text-sm font-semibold text-slate-800">{member.tasks}</p>
-              <p className="text-xs text-slate-400">tasks</p>
+
+            <div className="flex-1">
+              <p className="font-medium">
+                {user.name}
+              </p>
+
+              <p className="text-sm text-gray-500">
+                {user.role?.replaceAll("_", " ")}
+              </p>
             </div>
           </li>
         ))}
@@ -350,46 +308,79 @@ function TeamMembers() {
   );
 }
 
-function ActivityTimeline() {
-  return (
-    <section className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6">
-      <header className="mb-5">
-        <h2 className="text-base font-semibold text-slate-900">Activity Timeline</h2>
-        <p className="text-sm text-slate-500">Latest updates across your organization</p>
-      </header>
-
-      <ol className="relative space-y-0">
-        {ACTIVITY.map((item, index) => (
-          <li key={item.id} className="relative flex gap-4 pb-6 last:pb-0">
-            {index < ACTIVITY.length - 1 && (
-              <span
-                className="absolute left-[4px] top-4 h-full w-px bg-slate-200"
-                aria-hidden="true"
-              />
-            )}
-            <ActivityDot type={item.type} />
-            <div className="min-w-0 flex-1 pt-0.5">
-              <p className="text-sm text-slate-700">
-                <span className="font-medium text-slate-900">{item.user}</span>{" "}
-                {item.action}{" "}
-                <span className="font-medium text-indigo-600">{item.target}</span>
-              </p>
-              <p className="mt-0.5 text-xs text-slate-500">
-                {item.project} · {item.time}
-              </p>
-            </div>
-          </li>
-        ))}
-      </ol>
-    </section>
-  );
-}
 
 /* -------------------------------------------------------------------------- */
 /*  AdminDashboard — main page content rendered inside AdminLayout            */
 /* -------------------------------------------------------------------------- */
-
 function AdminDashboard() {
+
+  const [users, setUsers] = useState([]);
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalProjects: 0,
+    inProgressTasks: 0,
+    completedTasks: 0,
+  });
+
+  const [projects, setProjects] = useState([]);
+
+  const getAuthHeader = () => ({
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+
+  const navigate = useNavigate();
+
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+
+        const [usersRes, projectsRes, tasksRes] =
+          await Promise.all([
+            axios.get(
+              "http://localhost:5001/api/users",
+              getAuthHeader()
+            ),
+            axios.get(
+              "http://localhost:5001/api/projects",
+              getAuthHeader()
+            ),
+            axios.get(
+              "http://localhost:5001/api/tasks",
+              getAuthHeader()
+            ),
+          ]);
+
+        console.log("USERS:", usersRes.data);
+        console.log("PROJECTS:", projectsRes.data);
+        console.log("TASKS:", tasksRes.data);
+
+        const tasks = tasksRes.data.tasks || [];
+        setUsers(usersRes.data.users || []);
+        setStats({
+          totalUsers: usersRes.data.count || 0,
+          totalProjects: projectsRes.data.count || 0,
+          inProgressTasks: tasks.filter(
+            (t) => t.status === "IN_PROGRESS"
+          ).length,
+          completedTasks: tasks.filter(
+            (t) => t.status === "COMPLETED"
+          ).length,
+        });
+
+        setProjects(
+          (projectsRes.data.projects || []).slice(0, 5)
+        );
+
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       {/* Page header */}
@@ -406,21 +397,61 @@ function AdminDashboard() {
       {/* Stats overview */}
       <section aria-label="Dashboard statistics" className="mb-6 sm:mb-8">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {STATS.map((stat) => (
-            <StatCard key={stat.label} {...stat} />
-          ))}
+          <StatCard
+            label="Total Users"
+            value={stats.totalUsers}
+            icon="users"
+            bg="bg-indigo-50"
+            text="text-indigo-600"
+            accent="from-indigo-500 to-indigo-600"
+          />
+
+          <StatCard
+            label="Total Projects"
+            value={stats.totalProjects}
+            icon="projects"
+            bg="bg-violet-50"
+            text="text-violet-600"
+            accent="from-violet-500 to-violet-600"
+          />
+
+          <StatCard
+            label="Tasks In Progress"
+            value={stats.inProgressTasks}
+            icon="progress"
+            bg="bg-amber-50"
+            text="text-amber-600"
+            accent="from-amber-500 to-orange-500"
+          />
+
+          <StatCard
+            label="Completed Tasks"
+            value={stats.completedTasks}
+            icon="completed"
+            bg="bg-emerald-50"
+            text="text-emerald-600"
+            accent="from-emerald-500 to-emerald-600"
+          />
         </div>
       </section>
 
       {/* Recent projects — full width */}
       <div className="mb-6 sm:mb-8">
-        <RecentProjects />
+        <RecentProjects
+          projects={projects}
+          navigate={navigate}
+        />
       </div>
 
       {/* Team + Activity — two-column on large screens */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8">
-        <TeamMembers />
-        <ActivityTimeline />
+      <div className="grid grid-cols-1 gap-6">
+        <TeamMembers users={users} />
+
+        {/* Activity Timeline
+<div className="bg-white rounded-2xl border p-6">
+ ...
+</div>
+*/}
       </div>
     </div>
   );
