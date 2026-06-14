@@ -4,6 +4,7 @@
 // Only ADMINISTRATORS can use these functions
 // ==============================
 
+const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const prisma = require('../config/prisma');
 
@@ -11,13 +12,13 @@ const prisma = require('../config/prisma');
 // POST /api/users
 const createUser = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, role } = req.body;
 
     // Check required fields
-    if (!name || !email || !password) {
+    if (!name || !email) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide name, email, and password'
+        message: 'Please provide name, and email'
       });
     }
 
@@ -30,13 +31,6 @@ const createUser = async (req, res) => {
       });
     }
 
-    // Validate password length
-    if (password.length < 6) {
-      return res.status(400).json({
-        success: false,
-        message: 'Password must be at least 6 characters long'
-      });
-    }
 
     // Validate role if provided
     const validRoles = ['ADMINISTRATOR', 'PROJECT_MANAGER', 'COLLABORATOR'];
@@ -59,7 +53,11 @@ const createUser = async (req, res) => {
     }
 
     // Hash the password before saving
-    const hashedPassword = await bcrypt.hash(password, 12);
+    const temporaryPassword =
+      crypto.randomBytes(6).toString('hex');
+
+    const hashedPassword =
+      await bcrypt.hash(temporaryPassword, 12);
 
     // Save new user to database
     const newUser = await prisma.user.create({
@@ -80,6 +78,11 @@ const createUser = async (req, res) => {
         createdAt: true,
       }
     });
+
+    console.log(
+      "Temporary Password:",
+      temporaryPassword
+    );
 
     return res.status(201).json({
       success: true,

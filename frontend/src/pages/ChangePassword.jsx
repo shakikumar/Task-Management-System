@@ -33,6 +33,11 @@ function ChangePassword() {
       alert("Passwords do not match");
       return;
     }
+      // ADD HERE
+    if (password.length < 8) {
+      alert("Password must be at least 8 characters");
+      return;
+    }
 
     try {
       const token = localStorage.getItem("token");
@@ -55,6 +60,11 @@ function ChangePassword() {
       setCurrentPassword("");
       setPassword("");
       setConfirmPassword("");
+
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+
+      window.location.href = "/login";
 
     } catch (error) {
       alert(

@@ -43,12 +43,21 @@ function Login() {
       // store JWT
       localStorage.setItem("token", data.token);
 
-      // redirect
-      navigate("/admin");
+      // store user data
+      localStorage.setItem(
+        "user",
+        JSON.stringify(data.user)
+      );
+      // Force password change check
+      if (data.user.mustResetPassword) {
+        navigate("/admin/change-password");
+      } else {
+        navigate("/admin");
+      }
     } catch (err) {
       setError(
         err.response?.data?.message ||
-          "Something went wrong. Please try again."
+        "Something went wrong. Please try again."
       );
     } finally {
       setLoading(false);
@@ -121,11 +130,10 @@ function Login() {
             <button
               type="submit"
               disabled={loading}
-              className={`w-full rounded-lg py-3 text-white font-semibold transition ${
-                loading
+              className={`w-full rounded-lg py-3 text-white font-semibold transition ${loading
                   ? "bg-gray-500 cursor-not-allowed"
                   : "bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500"
-              }`}
+                }`}
             >
               {loading ? "Signing in..." : "Sign in"}
             </button>

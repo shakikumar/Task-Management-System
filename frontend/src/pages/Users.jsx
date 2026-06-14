@@ -18,23 +18,46 @@ const INITIAL_USERS = [
   { id: 10, name: "Nina Patel", email: "nina.patel@taskflow.io", role: "Collaborator", status: "Active", assignedProjects: 5, lastActive: "30 min ago", initials: "NP" },
 ];
 
-const ROLE_OPTIONS = ["All Roles", "Administrator", "Project Manager", "Collaborator"];
-const USER_ROLES = ["Administrator", "Project Manager", "Collaborator"];
+const ROLE_OPTIONS = [
+  { value: "All Roles", label: "All Roles" },
+  { value: "ADMINISTRATOR", label: "Administrator" },
+  { value: "PROJECT_MANAGER", label: "Project Manager" },
+  { value: "COLLABORATOR", label: "Collaborator" },
+];
+const USER_ROLES = [
+  "ADMINISTRATOR",
+  "PROJECT_MANAGER",
+  "COLLABORATOR"
+];
 
 /* -------------------------------------------------------------------------- */
 /*  Badges                                                                   */
 /* -------------------------------------------------------------------------- */
 
 function RoleBadge({ role }) {
+
   const styles = {
-    Administrator: "bg-violet-50 text-violet-700 ring-violet-600/20",
-    "Project Manager": "bg-indigo-50 text-indigo-700 ring-indigo-600/20",
-    Collaborator: "bg-slate-100 text-slate-700 ring-slate-500/20",
+    ADMINISTRATOR:
+      "bg-violet-50 text-violet-700 ring-violet-600/20",
+
+    PROJECT_MANAGER:
+      "bg-indigo-50 text-indigo-700 ring-indigo-600/20",
+
+    COLLABORATOR:
+      "bg-slate-100 text-slate-700 ring-slate-500/20",
+  };
+
+  const labels = {
+    ADMINISTRATOR: "Administrator",
+    PROJECT_MANAGER: "Project Manager",
+    COLLABORATOR: "Collaborator",
   };
 
   return (
-    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${styles[role]}`}>
-      {role}
+    <span
+      className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${styles[role]}`}
+    >
+      {labels[role]}
     </span>
   );
 }
@@ -83,11 +106,11 @@ function Users() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    role: "Administrator",
+    role: "COLLABORATOR",
   });
   useEffect(() => {
-  fetchUsers();
-}, []);
+    fetchUsers();
+  }, []);
 
   const fetchUsers = async () => {
     try {
@@ -128,14 +151,41 @@ function Users() {
 
   const stats = useMemo(() => ({
     total: users.length,
-    active: users.filter(u => u.status === "Active").length,
-    managers: users.filter(u => u.role === "Project Manager").length,
-    collaborators: users.filter(u => u.role === "Collaborator").length,
+
+    active: users.filter(
+      u => u.isActive === true
+    ).length,
+
+    managers: users.filter(
+      u => u.role === "PROJECT_MANAGER"
+    ).length,
+
+    collaborators: users.filter(
+      u => u.role === "COLLABORATOR"
+    ).length,
+
   }), [users]);
 
-  function handleDelete(id) {
-    setUsers((prev) => prev.filter((user) => user.id !== id));
-  }
+  const handleDelete = async (id) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      await axios.delete(
+        `http://localhost:5001/api/users/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      await fetchUsers();
+
+    } catch (error) {
+      console.error(error);
+      alert("Failed to delete user");
+    }
+  };
 
   function handleRoleChange(id, role) {
     setUsers((prev) =>
@@ -197,8 +247,13 @@ function Users() {
           onChange={(e) => setRoleFilter(e.target.value)}
           className="border rounded-lg px-3 py-2"
         >
-          {ROLE_OPTIONS.map(r => (
-            <option key={r} value={r}>{r}</option>
+          {ROLE_OPTIONS.map((role) => (
+            <option
+              key={role.value}
+              value={role.value}
+            >
+              {role.label}
+            </option>
           ))}
         </select>
       </div>
@@ -233,9 +288,17 @@ function Users() {
                       aria-label={`Change role for ${u.name}`}
                       className="rounded-lg border border-slate-200 px-2 py-1.5 text-xs text-slate-700 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                     >
-                      {USER_ROLES.map((role) => (
-                        <option key={role} value={role}>{role}</option>
-                      ))}
+                      <option value="ADMINISTRATOR">
+                        Administrator
+                      </option>
+
+                      <option value="PROJECT_MANAGER">
+                        Project Manager
+                      </option>
+
+                      <option value="COLLABORATOR">
+                        Collaborator
+                      </option>
                     </select>
                     <button
                       type="button"
@@ -261,33 +324,41 @@ function Users() {
             <h2 className="text-lg font-bold mb-4">Add User</h2>
 
             <input
-  className="w-full mb-3 border rounded-lg px-3 py-2"
-  placeholder="Name"
-  value={formData.name}
-  onChange={(e) =>
-    setFormData({ ...formData, name: e.target.value })
-  }
-/>
-<input
-  className="w-full mb-3 border rounded-lg px-3 py-2"
-  placeholder="Email"
-  value={formData.email}
-  onChange={(e) =>
-    setFormData({ ...formData, email: e.target.value })
-  }
-/>
+              className="w-full mb-3 border rounded-lg px-3 py-2"
+              placeholder="Name"
+              value={formData.name}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
+            />
+            <input
+              className="w-full mb-3 border rounded-lg px-3 py-2"
+              placeholder="Email"
+              value={formData.email}
+              onChange={(e) =>
+                setFormData({ ...formData, email: e.target.value })
+              }
+            />
 
-<select
-  className="w-full mb-4 border rounded-lg px-3 py-2"
-  value={formData.role}
-  onChange={(e) =>
-    setFormData({ ...formData, role: e.target.value })
-  }
->
-  <option>Administrator</option>
-  <option>Project Manager</option>
-  <option>Collaborator</option>
-</select>
+            <select
+              className="w-full mb-4 border rounded-lg px-3 py-2"
+              value={formData.role}
+              onChange={(e) =>
+                setFormData({ ...formData, role: e.target.value })
+              }
+            >
+              <option value="ADMINISTRATOR">
+                Administrator
+              </option>
+
+              <option value="PROJECT_MANAGER">
+                Project Manager
+              </option>
+
+              <option value="COLLABORATOR">
+                Collaborator
+              </option>
+            </select>
 
             <div className="flex justify-end gap-2">
               <button
@@ -298,24 +369,39 @@ function Users() {
               </button>
 
               <button
-                onClick={() => {
-                  const newUser = {
-                    id: Date.now(),
-                    name: formData.name,
-                    email: formData.email,
-                    role: formData.role,
-                    status: "Active",
-                    assignedProjects: 0,
-                    lastActive: "Just now",
-                    initials: formData.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")
-                      .toUpperCase(),
-                  };
-                
-                  setUsers([newUser, ...users]);
-                  setIsModalOpen(false);
+                onClick={async () => {
+                  try {
+                    const token = localStorage.getItem("token");
+
+                    const response = await axios.post(
+                      "http://localhost:5001/api/users",
+                      {
+                        name: formData.name,
+                        email: formData.email,
+                        role: formData.role,
+                      },
+                      {
+                        headers: {
+                          Authorization: `Bearer ${token}`,
+                        },
+                      }
+                    );
+
+                    if (response.data.success) {
+                      await fetchUsers();
+
+                      setFormData({
+                        name: "",
+                        email: "",
+                        role: "COLLABORATOR",
+                      });
+
+                      setIsModalOpen(false);
+                    }
+                  } catch (error) {
+                    console.error(error);
+                    alert("Failed to create user");
+                  }
                 }}
                 className="px-4 py-2 bg-indigo-600 text-white rounded-lg"
               >
