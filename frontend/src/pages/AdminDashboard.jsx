@@ -268,7 +268,7 @@ function AdminDashboard() {
 
           const tasks = tasksRes.data.tasks || [];
 
-          console.log("COLLAB TASKS:", tasks);
+          
 
           setCollabStats({
             myTasks: tasks.length,
@@ -304,17 +304,11 @@ function AdminDashboard() {
             ),
           ]);
 
-        console.log("USERS:", usersRes.data);
-        console.log("PROJECTS:", projectsRes.data);
-        console.log("TASKS:", tasksRes.data);
+        
 
         const tasks = tasksRes.data.tasks || [];
 
-        console.log("CURRENT USER", currentUser);
-        console.log("FIRST TASK", tasks[0]);
-        console.log("TASK USER ID", tasks[0]?.assignedUserId);
-        console.log("TASK ASSIGNED USER", tasks[0]?.assignedUser);
-        console.log("CURRENT USER ID", currentUser?.id);
+        
 
         if (currentUser?.role === "PROJECT_MANAGER") {
 

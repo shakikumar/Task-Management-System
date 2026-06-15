@@ -47,13 +47,11 @@ function Tasks() {
           },
         });
 
-        console.log("TASKS FROM BACKEND:", res.data);
-
         if (res.data.success) {
           setTasks(res.data.tasks);
         }
       } catch (error) {
-        console.log("BACKEND ERROR:", error.response?.data || error.message);
+        
       }
     };
 
@@ -182,7 +180,7 @@ function Tasks() {
       }
 
     } catch (error) {
-      console.log("Status update failed:", error);
+      
     }
   };
 
@@ -206,7 +204,7 @@ function Tasks() {
       }
 
     } catch (error) {
-      console.log("Delete failed:", error);
+      
     }
   };
 
