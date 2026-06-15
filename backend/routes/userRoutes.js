@@ -38,7 +38,7 @@ router.post('/', protect, restrictTo('ADMINISTRATOR'), createUser);
  *     tags: [Users]
  */
 // GET /api/users → Get list of all users
-router.get('/', protect, restrictTo('ADMINISTRATOR'), getAllUsers);
+router.get('/', protect, restrictTo('ADMINISTRATOR', 'PROJECT_MANAGER'), getAllUsers);
 
 /**
  * @swagger
@@ -48,7 +48,7 @@ router.get('/', protect, restrictTo('ADMINISTRATOR'), getAllUsers);
  *     tags: [Users]
  */
 // GET /api/users/:id → Get one specific user
-router.get('/:id', protect, restrictTo('ADMINISTRATOR'), getUserById);
+router.get('/:id', protect, restrictTo('ADMINISTRATOR', 'PROJECT_MANAGER'), getUserById);
 
 /**
  * @swagger

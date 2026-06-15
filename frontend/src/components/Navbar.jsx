@@ -1,4 +1,4 @@
-import { useState } from "react";
+
 
 /* -------------------------------------------------------------------------- */
 /*  Icon components — inline SVGs to avoid extra dependencies                 */
@@ -12,13 +12,7 @@ function MenuIcon() {
   );
 }
 
-function SearchIcon() {
-  return (
-    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-    </svg>
-  );
-}
+
 
 function BellIcon() {
   return (
@@ -32,35 +26,6 @@ function BellIcon() {
 /*  SearchBar — centered global search, collapses to icon on small screens    */
 /* -------------------------------------------------------------------------- */
 
-function SearchBar({ value, onChange }) {
-  return (
-    <>
-      {/* Full search field — visible from md breakpoint up */}
-      <div className="relative hidden w-full max-w-md md:block">
-        <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
-          <SearchIcon />
-        </span>
-        <input
-          type="search"
-          value={value}
-          onChange={onChange}
-          placeholder="Search tasks, projects, people..."
-          aria-label="Search"
-          className="h-10 w-full rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-4 text-sm text-slate-700 placeholder:text-slate-400 transition-colors focus:border-indigo-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-        />
-      </div>
-
-      {/* Compact search trigger — mobile only */}
-      <button
-        type="button"
-        aria-label="Open search"
-        className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 md:hidden"
-      >
-        <SearchIcon />
-      </button>
-    </>
-  );
-}
 
 /* -------------------------------------------------------------------------- */
 /*  NotificationButton — bell icon with unread indicator                      */
@@ -110,7 +75,7 @@ function Navbar({
   user = { name: "Alex Morgan", initials: "AM" },
   hasUnreadNotifications = true,
 }) {
-  const [searchQuery, setSearchQuery] = useState("");
+  
 
   return (
     <header className="sticky top-0 z-30 h-16 shrink-0 border-b border-slate-200/80 bg-white/95 backdrop-blur-sm">
@@ -132,16 +97,10 @@ function Navbar({
           </h1>
         </div>
 
-        {/* Center — global search */}
-        <div className="flex flex-1 justify-center px-2 sm:px-6">
-          <SearchBar
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
+
 
         {/* Right — notifications and user profile */}
-        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+        <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
           <NotificationButton hasUnread={hasUnreadNotifications} />
           <div className="mx-1 hidden h-6 w-px bg-slate-200 sm:block" aria-hidden="true" />
           <UserAvatar name={user.name} initials={user.initials} />

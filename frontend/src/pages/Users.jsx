@@ -1,39 +1,52 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import axios from "axios";
 
 /* -------------------------------------------------------------------------- */
 /*  Users Page (API-ready structure)                                          */
 /* -------------------------------------------------------------------------- */
 
-const INITIAL_USERS = [
-  { id: 1, name: "Sarah Chen", email: "sarah.chen@taskflow.io", role: "Administrator", status: "Active", assignedProjects: 8, lastActive: "2 min ago", initials: "SC" },
-  { id: 2, name: "Marcus Webb", email: "marcus.webb@taskflow.io", role: "Project Manager", status: "Active", assignedProjects: 5, lastActive: "18 min ago", initials: "MW" },
-  { id: 3, name: "Elena Rodriguez", email: "elena.r@taskflow.io", role: "Collaborator", status: "Active", assignedProjects: 3, lastActive: "1 hr ago", initials: "ER" },
-  { id: 4, name: "James Okonkwo", email: "james.okonkwo@taskflow.io", role: "Project Manager", status: "Inactive", assignedProjects: 4, lastActive: "3 days ago", initials: "JO" },
-  { id: 5, name: "Priya Sharma", email: "priya.sharma@taskflow.io", role: "Collaborator", status: "Active", assignedProjects: 6, lastActive: "45 min ago", initials: "PS" },
-  { id: 6, name: "Alex Morgan", email: "alex.morgan@taskflow.io", role: "Administrator", status: "Active", assignedProjects: 7, lastActive: "5 min ago", initials: "AM" },
-  { id: 7, name: "David Kim", email: "david.kim@taskflow.io", role: "Collaborator", status: "Invited", assignedProjects: 0, lastActive: "Never", initials: "DK" },
-  { id: 8, name: "Rachel Foster", email: "rachel.foster@taskflow.io", role: "Project Manager", status: "Active", assignedProjects: 4, lastActive: "Yesterday", initials: "RF" },
-  { id: 9, name: "Tom Hughes", email: "tom.hughes@taskflow.io", role: "Collaborator", status: "Inactive", assignedProjects: 2, lastActive: "1 week ago", initials: "TH" },
-  { id: 10, name: "Nina Patel", email: "nina.patel@taskflow.io", role: "Collaborator", status: "Active", assignedProjects: 5, lastActive: "30 min ago", initials: "NP" },
-];
 
-const ROLE_OPTIONS = ["All Roles", "Administrator", "Project Manager", "Collaborator"];
-const USER_ROLES = ["Administrator", "Project Manager", "Collaborator"];
+
+const ROLE_OPTIONS = [
+  { value: "All Roles", label: "All Roles" },
+  { value: "ADMINISTRATOR", label: "Administrator" },
+  { value: "PROJECT_MANAGER", label: "Project Manager" },
+  { value: "COLLABORATOR", label: "Collaborator" },
+];
+const USER_ROLES = [
+  "ADMINISTRATOR",
+  "PROJECT_MANAGER",
+  "COLLABORATOR"
+];
 
 /* -------------------------------------------------------------------------- */
 /*  Badges                                                                   */
 /* -------------------------------------------------------------------------- */
 
 function RoleBadge({ role }) {
+
   const styles = {
-    Administrator: "bg-violet-50 text-violet-700 ring-violet-600/20",
-    "Project Manager": "bg-indigo-50 text-indigo-700 ring-indigo-600/20",
-    Collaborator: "bg-slate-100 text-slate-700 ring-slate-500/20",
+    ADMINISTRATOR:
+      "bg-violet-50 text-violet-700 ring-violet-600/20",
+
+    PROJECT_MANAGER:
+      "bg-indigo-50 text-indigo-700 ring-indigo-600/20",
+
+    COLLABORATOR:
+      "bg-slate-100 text-slate-700 ring-slate-500/20",
+  };
+
+  const labels = {
+    ADMINISTRATOR: "Administrator",
+    PROJECT_MANAGER: "Project Manager",
+    COLLABORATOR: "Collaborator",
   };
 
   return (
-    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${styles[role]}`}>
-      {role}
+    <span
+      className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${styles[role]}`}
+    >
+      {labels[role]}
     </span>
   );
 }
@@ -77,14 +90,37 @@ function StatCard({ label, value, icon, bg, text }) {
 function Users() {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("All Roles");
-  const [users, setUsers] = useState(INITIAL_USERS);
+  const [users, setUsers] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    role: "Administrator",
+    role: "COLLABORATOR",
   });
-  
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await axios.get(
+        "http://localhost:5001/api/users",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setUsers(response.data.users);
+      }
+    } catch (error) {
+      console.error("Error loading users:", error);
+    }
+  };
 
   const filteredUsers = useMemo(() => {
     const q = search.toLowerCase().trim();
@@ -104,20 +140,73 @@ function Users() {
 
   const stats = useMemo(() => ({
     total: users.length,
-    active: users.filter(u => u.status === "Active").length,
-    managers: users.filter(u => u.role === "Project Manager").length,
-    collaborators: users.filter(u => u.role === "Collaborator").length,
+
+    active: users.filter(
+      u => u.isActive === true
+    ).length,
+
+    managers: users.filter(
+      u => u.role === "PROJECT_MANAGER"
+    ).length,
+
+    collaborators: users.filter(
+      u => u.role === "COLLABORATOR"
+    ).length,
+
   }), [users]);
 
-  function handleDelete(id) {
-    setUsers((prev) => prev.filter((user) => user.id !== id));
-  }
-
-  function handleRoleChange(id, role) {
-    setUsers((prev) =>
-      prev.map((user) => (user.id === id ? { ...user, role } : user))
+  const handleDelete = async (id) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this user?"
     );
-  }
+
+    if (!confirmDelete) return;
+    try {
+      const token = localStorage.getItem("token");
+
+      await axios.delete(
+        `http://localhost:5001/api/users/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      await fetchUsers();
+
+    } catch (error) {
+      console.error(error);
+      alert("Failed to delete user");
+    }
+  };
+
+  const handleRoleChange = async (id, role) => {
+    try {
+
+      const token = localStorage.getItem("token");
+
+      const response = await axios.put(
+        `http://localhost:5001/api/users/${id}`,
+        {
+          role
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      if (response.data.success) {
+        await fetchUsers();
+      }
+
+    } catch (error) {
+      console.error(error);
+      alert("Failed to update role");
+    }
+  };
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
@@ -147,16 +236,17 @@ function Users() {
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
         <StatCard label="Total Users" value={stats.total} bg="bg-indigo-50" text="text-indigo-600"
-          icon="M15 19.128a9.38 9.38 0 002.625..." />
+          icon="" />
 
         <StatCard label="Active Users" value={stats.active} bg="bg-emerald-50" text="text-emerald-600"
           icon="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0" />
 
         <StatCard label="Managers" value={stats.managers} bg="bg-violet-50" text="text-violet-600"
-          icon="M20.25 14.15v4.25c0..." />
+          icon="M15 19.128a9.38 9.38 0 002.625.372A9.337 9.337 0 0021 12c0-4.97-4.03-9-9-9s-9 4.03-9 9a9.337 9.337 0 003.375 7.5"/>
 
         <StatCard label="Collaborators" value={stats.collaborators} bg="bg-slate-100" text="text-slate-600"
-          icon="M18 18.72a9.094 9.094 0..." />
+          icon="M18 18.72a9.094 9.094 0 003.742-.479A3 3 0 0018 15.75h-1.5"
+ />
       </div>
 
       {/* Filters */}
@@ -173,8 +263,13 @@ function Users() {
           onChange={(e) => setRoleFilter(e.target.value)}
           className="border rounded-lg px-3 py-2"
         >
-          {ROLE_OPTIONS.map(r => (
-            <option key={r} value={r}>{r}</option>
+          {ROLE_OPTIONS.map((role) => (
+            <option
+              key={role.value}
+              value={role.value}
+            >
+              {role.label}
+            </option>
           ))}
         </select>
       </div>
@@ -198,9 +293,17 @@ function Users() {
               <tr key={u.id} className="border-b hover:bg-slate-50">
                 <td className="p-3">{u.name}</td>
                 <td><RoleBadge role={u.role} /></td>
-                <td><StatusBadge status={u.status} /></td>
+                <td>
+                  <StatusBadge
+                    status={u.isActive ? "Active" : "Inactive"}
+                  />
+                </td>
                 <td>{u.assignedProjects}</td>
-                <td>{u.lastActive}</td>
+                <td>
+                  {u.lastActive
+                    ? new Date(u.lastActive).toLocaleString()
+                    : "-"}
+                </td>
                 <td className="p-3">
                   <div className="flex items-center justify-end gap-2">
                     <select
@@ -209,9 +312,17 @@ function Users() {
                       aria-label={`Change role for ${u.name}`}
                       className="rounded-lg border border-slate-200 px-2 py-1.5 text-xs text-slate-700 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                     >
-                      {USER_ROLES.map((role) => (
-                        <option key={role} value={role}>{role}</option>
-                      ))}
+                      <option value="ADMINISTRATOR">
+                        Administrator
+                      </option>
+
+                      <option value="PROJECT_MANAGER">
+                        Project Manager
+                      </option>
+
+                      <option value="COLLABORATOR">
+                        Collaborator
+                      </option>
                     </select>
                     <button
                       type="button"
@@ -237,33 +348,41 @@ function Users() {
             <h2 className="text-lg font-bold mb-4">Add User</h2>
 
             <input
-  className="w-full mb-3 border rounded-lg px-3 py-2"
-  placeholder="Name"
-  value={formData.name}
-  onChange={(e) =>
-    setFormData({ ...formData, name: e.target.value })
-  }
-/>
-<input
-  className="w-full mb-3 border rounded-lg px-3 py-2"
-  placeholder="Email"
-  value={formData.email}
-  onChange={(e) =>
-    setFormData({ ...formData, email: e.target.value })
-  }
-/>
+              className="w-full mb-3 border rounded-lg px-3 py-2"
+              placeholder="Name"
+              value={formData.name}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
+            />
+            <input
+              className="w-full mb-3 border rounded-lg px-3 py-2"
+              placeholder="Email"
+              value={formData.email}
+              onChange={(e) =>
+                setFormData({ ...formData, email: e.target.value })
+              }
+            />
 
-<select
-  className="w-full mb-4 border rounded-lg px-3 py-2"
-  value={formData.role}
-  onChange={(e) =>
-    setFormData({ ...formData, role: e.target.value })
-  }
->
-  <option>Administrator</option>
-  <option>Project Manager</option>
-  <option>Collaborator</option>
-</select>
+            <select
+              className="w-full mb-4 border rounded-lg px-3 py-2"
+              value={formData.role}
+              onChange={(e) =>
+                setFormData({ ...formData, role: e.target.value })
+              }
+            >
+              <option value="ADMINISTRATOR">
+                Administrator
+              </option>
+
+              <option value="PROJECT_MANAGER">
+                Project Manager
+              </option>
+
+              <option value="COLLABORATOR">
+                Collaborator
+              </option>
+            </select>
 
             <div className="flex justify-end gap-2">
               <button
@@ -274,24 +393,39 @@ function Users() {
               </button>
 
               <button
-                onClick={() => {
-                  const newUser = {
-                    id: Date.now(),
-                    name: formData.name,
-                    email: formData.email,
-                    role: formData.role,
-                    status: "Active",
-                    assignedProjects: 0,
-                    lastActive: "Just now",
-                    initials: formData.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")
-                      .toUpperCase(),
-                  };
-                
-                  setUsers([newUser, ...users]);
-                  setIsModalOpen(false);
+                onClick={async () => {
+                  try {
+                    const token = localStorage.getItem("token");
+
+                    const response = await axios.post(
+                      "http://localhost:5001/api/users",
+                      {
+                        name: formData.name,
+                        email: formData.email,
+                        role: formData.role,
+                      },
+                      {
+                        headers: {
+                          Authorization: `Bearer ${token}`,
+                        },
+                      }
+                    );
+
+                    if (response.data.success) {
+                      await fetchUsers();
+
+                      setFormData({
+                        name: "",
+                        email: "",
+                        role: "COLLABORATOR",
+                      });
+
+                      setIsModalOpen(false);
+                    }
+                  } catch (error) {
+                    console.error(error);
+                    alert("Failed to create user");
+                  }
                 }}
                 className="px-4 py-2 bg-indigo-600 text-white rounded-lg"
               >
