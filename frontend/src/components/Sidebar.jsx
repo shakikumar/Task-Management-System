@@ -34,6 +34,7 @@ const ICON_PATHS = {
 };
 
 function SidebarIcon({ paths, className = "h-5 w-5 shrink-0", strokeWidth = 1.75 }) {
+ 
   return (
     <svg
       className={className}
@@ -74,10 +75,10 @@ function navLinkClass(isActive, collapsed) {
     collapsed ? "lg:justify-center lg:gap-0 lg:px-2" : "",
     isActive
       ? [
-          "bg-indigo-500/15 text-white shadow-sm ring-1 ring-indigo-500/25",
-          "before:absolute before:left-0 before:top-1/2 before:h-6 before:w-[3px] before:-translate-y-1/2 before:rounded-r-full before:bg-indigo-400",
-          collapsed ? "lg:before:h-5" : "",
-        ].join(" ")
+        "bg-indigo-500/15 text-white shadow-sm ring-1 ring-indigo-500/25",
+        "before:absolute before:left-0 before:top-1/2 before:h-6 before:w-[3px] before:-translate-y-1/2 before:rounded-r-full before:bg-indigo-400",
+        collapsed ? "lg:before:h-5" : "",
+      ].join(" ")
       : "text-slate-400 hover:bg-white/5 hover:text-slate-200",
   ].join(" ");
 }
@@ -124,7 +125,32 @@ function Sidebar({
   const [collapsedInternal, setCollapsedInternal] = useState(defaultCollapsed);
   const isCollapsedControlled = collapsedProp !== undefined;
   const collapsed = isCollapsedControlled ? collapsedProp : collapsedInternal;
-  
+  const currentUser = JSON.parse(
+    localStorage.getItem("user")
+  );
+  const role = currentUser?.role;
+  const filteredNavItems = navItems.filter((item) => {
+
+    if (role === "ADMINISTRATOR") {
+      return true;
+    }
+
+    if (role === "PROJECT_MANAGER") {
+      return item.label !== "Users";
+    }
+
+    if (role === "COLLABORATOR") {
+      return [
+        "Overview",
+        "Tasks",
+        "Profile",
+        "Settings"
+      ].includes(item.label);
+    }
+
+    return false;
+  });
+
   const handleToggleCollapse = () => {
     const next = !collapsed;
     onCollapsedChange?.(next);
@@ -203,7 +229,7 @@ function Sidebar({
             Menu
           </p>
           <ul className="space-y-1" role="list">
-            {navItems.map(({ to, label, icon, end }) => (
+            {filteredNavItems.map(({ to, label, icon, end }) => (
               <li key={to}>
                 <NavItem
                   to={to}
