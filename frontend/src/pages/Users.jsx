@@ -13,11 +13,7 @@ const ROLE_OPTIONS = [
   { value: "PROJECT_MANAGER", label: "Project Manager" },
   { value: "COLLABORATOR", label: "Collaborator" },
 ];
-const USER_ROLES = [
-  "ADMINISTRATOR",
-  "PROJECT_MANAGER",
-  "COLLABORATOR"
-];
+
 
 /* -------------------------------------------------------------------------- */
 /*  Badges                                                                   */
@@ -97,10 +93,7 @@ function Users() {
     email: "",
     role: "COLLABORATOR",
   });
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
+  
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -121,6 +114,12 @@ function Users() {
       console.error("Error loading users:", error);
     }
   };
+
+  useEffect(() => {
+  fetchUsers();
+}, []);
+
+  
 
   const filteredUsers = useMemo(() => {
     const q = search.toLowerCase().trim();
