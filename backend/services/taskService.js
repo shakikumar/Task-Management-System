@@ -91,6 +91,20 @@ const getAllTasks = async (filters, user) => {
   } else if (filters.assignedUserId) {
     where.assignedUserId = filters.assignedUserId;
   }
+  if (user.role === "PROJECT_MANAGER") {
+  const myProjects = await prisma.project.findMany({
+    where: {
+      createdById: user.id
+    },
+    select: {
+      id: true
+    }
+  });
+
+  where.projectId = {
+    in: myProjects.map(project => project.id)
+  };
+}
 
   // ---- FILTER 5: Search by title (NEW!) ----
   // Example: ?search=login

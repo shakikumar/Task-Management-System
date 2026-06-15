@@ -81,6 +81,7 @@ function Tasks() {
         );
 
         if (res.data.success) {
+          console.log(users);
           setUsers(res.data.users);
         }
       } catch (err) {
@@ -251,14 +252,16 @@ function Tasks() {
           >
             <option value="">Select User</option>
 
-            {users.map((user) => (
-              <option
-                key={user.id}
-                value={user.id}
-              >
-                {user.name}
-              </option>
-            ))}
+            {users
+              .filter(user => user.role === "COLLABORATOR")
+              .map((user) => (
+                <option
+                  key={user.id}
+                  value={user.id}
+                >
+                  {user.name}
+                </option>
+              ))}
           </select>
 
           <select

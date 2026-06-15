@@ -282,13 +282,92 @@ function AdminDashboard() {
 
     fetchDashboardData();
   }, []);
+  const currentUser = JSON.parse(
+    localStorage.getItem("user")
+  );
+  const role = currentUser?.role;
+
+  if (role === "PROJECT_MANAGER") {
+  return (
+    <div className="p-6">
+      <h1 className="text-3xl font-bold">
+        Welcome Back, {currentUser?.name}
+      </h1>
+
+      <p className="text-gray-500 mb-6">
+        Project Manager Dashboard
+      </p>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+        <div className="p-4 border rounded-lg">
+          <h3>My Projects</h3>
+          <p className="text-2xl font-bold">0</p>
+        </div>
+
+        <div className="p-4 border rounded-lg">
+          <h3>My Tasks</h3>
+          <p className="text-2xl font-bold">0</p>
+        </div>
+
+        <div className="p-4 border rounded-lg">
+          <h3>Pending Tasks</h3>
+          <p className="text-2xl font-bold">0</p>
+        </div>
+
+        <div className="p-4 border rounded-lg">
+          <h3>Completed Tasks</h3>
+          <p className="text-2xl font-bold">0</p>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+if (role === "COLLABORATOR") {
+  return (
+    <div className="p-6">
+      <h1 className="text-3xl font-bold">
+        Welcome Back, {currentUser?.name}
+      </h1>
+
+      <p className="text-gray-500 mb-6">
+        Collaborator Dashboard
+      </p>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+        <div className="p-4 border rounded-lg">
+          <h3>My Tasks</h3>
+          <p className="text-2xl font-bold">0</p>
+        </div>
+
+        <div className="p-4 border rounded-lg">
+          <h3>Pending Tasks</h3>
+          <p className="text-2xl font-bold">0</p>
+        </div>
+
+        <div className="p-4 border rounded-lg">
+          <h3>Completed Tasks</h3>
+          <p className="text-2xl font-bold">0</p>
+        </div>
+
+        <div className="p-4 border rounded-lg">
+          <h3>High Priority</h3>
+          <p className="text-2xl font-bold">0</p>
+        </div>
+
+      </div>
+    </div>
+  );
+}
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       {/* Page header */}
       <header className="mb-6 sm:mb-8">
         <p className="text-sm font-medium text-indigo-600">Overview</p>
         <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-          Good morning, Admin
+          Welcome Back, {currentUser?.name}
         </h1>
         <p className="mt-1 text-sm text-slate-500 sm:text-base">
           Here&apos;s what&apos;s happening across your task management workspace today.

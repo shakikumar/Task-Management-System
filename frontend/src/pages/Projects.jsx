@@ -106,7 +106,7 @@ function Projects() {
           name: "",
           description: "",
           owner: "",
-          status: "Planning",
+          status: "PLANNING",
         });
         setIsOpen(false);
       }
@@ -118,10 +118,10 @@ function Projects() {
   // REPLACE YOUR OLD handleDeleteProject FUNCTION WITH THIS ONE:
   async function handleDeleteProject(id) {
     const confirmDelete = window.confirm(
-    "Are you sure you want to delete this project?"
-  );
+      "Are you sure you want to delete this project?"
+    );
 
-  if (!confirmDelete) return;
+    if (!confirmDelete) return;
 
     try {
       const token = localStorage.getItem('token');
@@ -263,14 +263,16 @@ function Projects() {
               onChange={(e) => setForm({ ...form, owner: e.target.value })}
             >
               <option value="">Select Owner</option>
-              {users.map((user) => (
-                <option
-                  key={user.id}
-                  value={user.id}
-                >
-                  {user.name}
-                </option>
-              ))}
+              {users
+                .filter(user => user.role === "PROJECT_MANAGER")
+                .map(user => (
+                  <option
+                    key={user.id}
+                    value={user.id}
+                  >
+                    {user.name}
+                  </option>
+                ))}
             </select>
 
             <input
