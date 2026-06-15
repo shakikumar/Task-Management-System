@@ -225,6 +225,20 @@ function AdminDashboard() {
 
   const [projects, setProjects] = useState([]);
 
+  const [pmStats, setPmStats] = useState({
+    myProjects: 0,
+    myTasks: 0,
+    pendingTasks: 0,
+    completedTasks: 0,
+  });
+
+  const [collabStats, setCollabStats] = useState({
+    myTasks: 0,
+    pendingTasks: 0,
+    completedTasks: 0,
+    highPriorityTasks: 0,
+  });
+
   const getAuthHeader = () => ({
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -233,11 +247,47 @@ function AdminDashboard() {
 
   const navigate = useNavigate();
 
+  const currentUser = JSON.parse(
+    localStorage.getItem("user")
+  );
+
+  const isCollaborator =
+    currentUser?.role === "COLLABORATOR";
+
+  const role = currentUser?.role;
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
+        if (currentUser?.role === "COLLABORATOR") {
 
+          const tasksRes = await axios.get(
+            "http://localhost:5001/api/tasks",
+            getAuthHeader()
+          );
+
+          const tasks = tasksRes.data.tasks || [];
+
+          console.log("COLLAB TASKS:", tasks);
+
+          setCollabStats({
+            myTasks: tasks.length,
+
+            pendingTasks: tasks.filter(
+              (t) => t.status !== "COMPLETED"
+            ).length,
+
+            completedTasks: tasks.filter(
+              (t) => t.status === "COMPLETED"
+            ).length,
+
+            highPriorityTasks: tasks.filter(
+              (t) => t.priority === "HIGH"
+            ).length,
+          });
+
+          return;
+        }
         const [usersRes, projectsRes, tasksRes] =
           await Promise.all([
             axios.get(
@@ -259,6 +309,43 @@ function AdminDashboard() {
         console.log("TASKS:", tasksRes.data);
 
         const tasks = tasksRes.data.tasks || [];
+
+        console.log("CURRENT USER", currentUser);
+        console.log("FIRST TASK", tasks[0]);
+        console.log("TASK USER ID", tasks[0]?.assignedUserId);
+        console.log("TASK ASSIGNED USER", tasks[0]?.assignedUser);
+        console.log("CURRENT USER ID", currentUser?.id);
+
+        if (currentUser?.role === "PROJECT_MANAGER") {
+
+          const myProjects = (projectsRes.data.projects || []).filter(
+            (p) => p.createdById === currentUser.id
+          );
+
+          const myProjectIds = myProjects.map(
+            (project) => project.id
+          );
+
+          const myTasks = tasks.filter(
+            (task) => myProjectIds.includes(task.projectId)
+          );
+
+          setPmStats({
+            myProjects: myProjects.length,
+            myTasks: myTasks.length,
+            pendingTasks: myTasks.filter(
+              (t) =>
+                t.status === "TODO" ||
+                t.status === "IN_PROGRESS"
+            ).length,
+            completedTasks: myTasks.filter(
+              (t) => t.status === "COMPLETED"
+            ).length,
+          });
+
+        }
+
+        
         setUsers(usersRes.data.users || []);
         setStats({
           totalUsers: usersRes.data.count || 0,
@@ -282,82 +369,131 @@ function AdminDashboard() {
 
     fetchDashboardData();
   }, []);
-  const currentUser = JSON.parse(
-    localStorage.getItem("user")
-  );
-  const role = currentUser?.role;
+
 
   if (role === "PROJECT_MANAGER") {
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold">
-        Welcome Back, {currentUser?.name}
-      </h1>
+    <div className="p-4 sm:p-6 lg:p-8">
 
-      <p className="text-gray-500 mb-6">
-        Project Manager Dashboard
-      </p>
+      <header className="mb-6 sm:mb-8">
+        <p className="text-sm font-medium text-indigo-600">
+          Project Manager
+        </p>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+          Welcome Back, {currentUser?.name}
+        </h1>
 
-        <div className="p-4 border rounded-lg">
-          <h3>My Projects</h3>
-          <p className="text-2xl font-bold">0</p>
+        <p className="mt-1 text-sm text-slate-500 sm:text-base">
+          Manage your projects and monitor team progress.
+        </p>
+      </header>
+
+      <section>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+
+          <StatCard
+            label="My Projects"
+            value={pmStats.myProjects}
+            icon="projects"
+            bg="bg-violet-50"
+            text="text-violet-600"
+            accent="from-violet-500 to-violet-600"
+          />
+
+          <StatCard
+            label="My Tasks"
+            value={pmStats.myTasks}
+            icon="progress"
+            bg="bg-indigo-50"
+            text="text-indigo-600"
+            accent="from-indigo-500 to-indigo-600"
+          />
+
+          <StatCard
+            label="Pending Tasks"
+            value={pmStats.pendingTasks}
+            icon="progress"
+            bg="bg-amber-50"
+            text="text-amber-600"
+            accent="from-amber-500 to-orange-500"
+          />
+
+          <StatCard
+            label="Completed Tasks"
+            value={pmStats.completedTasks}
+            icon="completed"
+            bg="bg-emerald-50"
+            text="text-emerald-600"
+            accent="from-emerald-500 to-emerald-600"
+          />
+
         </div>
+      </section>
 
-        <div className="p-4 border rounded-lg">
-          <h3>My Tasks</h3>
-          <p className="text-2xl font-bold">0</p>
-        </div>
-
-        <div className="p-4 border rounded-lg">
-          <h3>Pending Tasks</h3>
-          <p className="text-2xl font-bold">0</p>
-        </div>
-
-        <div className="p-4 border rounded-lg">
-          <h3>Completed Tasks</h3>
-          <p className="text-2xl font-bold">0</p>
-        </div>
-
-      </div>
     </div>
   );
 }
-if (role === "COLLABORATOR") {
+  if (role === "COLLABORATOR") {
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold">
-        Welcome Back, {currentUser?.name}
-      </h1>
+    <div className="p-4 sm:p-6 lg:p-8">
 
-      <p className="text-gray-500 mb-6">
-        Collaborator Dashboard
-      </p>
+      <header className="mb-6 sm:mb-8">
+        <p className="text-sm font-medium text-indigo-600">
+          Collaborator
+        </p>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+          Welcome Back, {currentUser?.name}
+        </h1>
 
-        <div className="p-4 border rounded-lg">
-          <h3>My Tasks</h3>
-          <p className="text-2xl font-bold">0</p>
+        <p className="mt-1 text-sm text-slate-500 sm:text-base">
+          View and update your assigned tasks.
+        </p>
+      </header>
+
+      <section>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+
+          <StatCard
+            label="My Tasks"
+            value={collabStats.myTasks}
+            icon="projects"
+            bg="bg-indigo-50"
+            text="text-indigo-600"
+            accent="from-indigo-500 to-indigo-600"
+          />
+
+          <StatCard
+            label="Pending Tasks"
+            value={collabStats.pendingTasks}
+            icon="progress"
+            bg="bg-amber-50"
+            text="text-amber-600"
+            accent="from-amber-500 to-orange-500"
+          />
+
+          <StatCard
+            label="Completed Tasks"
+            value={collabStats.completedTasks}
+            icon="completed"
+            bg="bg-emerald-50"
+            text="text-emerald-600"
+            accent="from-emerald-500 to-emerald-600"
+          />
+
+          <StatCard
+            label="High Priority"
+            value={collabStats.highPriorityTasks}
+            icon="users"
+            bg="bg-red-50"
+            text="text-red-600"
+            accent="from-red-500 to-red-600"
+          />
+
         </div>
+      </section>
 
-        <div className="p-4 border rounded-lg">
-          <h3>Pending Tasks</h3>
-          <p className="text-2xl font-bold">0</p>
-        </div>
-
-        <div className="p-4 border rounded-lg">
-          <h3>Completed Tasks</h3>
-          <p className="text-2xl font-bold">0</p>
-        </div>
-
-        <div className="p-4 border rounded-lg">
-          <h3>High Priority</h3>
-          <p className="text-2xl font-bold">0</p>
-        </div>
-
-      </div>
     </div>
   );
 }

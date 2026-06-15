@@ -18,6 +18,13 @@ function Tasks() {
   const [statusFilter, setStatusFilter] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("");
 
+  const currentUser = JSON.parse(
+    localStorage.getItem("user")
+  );
+
+  const isCollaborator =
+    currentUser?.role === "COLLABORATOR";
+
 
   const API_URL = "http://localhost:5001/api/tasks";
   const getAuthHeader = () => ({
@@ -234,71 +241,74 @@ function Tasks() {
       <h1 className="text-2xl font-bold mb-6">Tasks Board</h1>
 
       {/* Add Task Form */}
-      <div className="mb-6 bg-white p-4 rounded shadow-sm border">
-        <h2 className="font-semibold mb-3">Add New Task</h2>
+      {!isCollaborator && (
+        <div className="mb-6 bg-white p-4 rounded shadow-sm border">
+          <h2 className="font-semibold mb-3">Add New Task</h2>
 
-        <div className="flex gap-2 flex-wrap">
-          <input
-            className="border p-2 rounded"
-            placeholder="Task title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
+          <div className="flex gap-2 flex-wrap">
+            <input
+              className="border p-2 rounded"
+              placeholder="Task title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
 
-          <select
-            value={selectedUser}
-            onChange={(e) => setSelectedUser(e.target.value)}
-            className="border p-2 rounded"
-          >
-            <option value="">Select User</option>
+            <select
+              value={selectedUser}
+              onChange={(e) => setSelectedUser(e.target.value)}
+              className="border p-2 rounded"
+            >
+              <option value="">Select User</option>
 
-            {users
-              .filter(user => user.role === "COLLABORATOR")
-              .map((user) => (
+              {users
+                .filter(user => user.role === "COLLABORATOR")
+                .map((user) => (
+                  <option
+                    key={user.id}
+                    value={user.id}
+                  >
+                    {user.name}
+                  </option>
+                ))}
+            </select>
+
+            <select
+              value={selectedProject}
+              onChange={(e) => setSelectedProject(e.target.value)}
+              className="border p-2 rounded"
+            >
+              <option value="">Select Project</option>
+
+              {projects.map((project) => (
                 <option
-                  key={user.id}
-                  value={user.id}
+                  key={project.id}
+                  value={project.id}
                 >
-                  {user.name}
+                  {project.name}
                 </option>
               ))}
-          </select>
+            </select>
 
-          <select
-            value={selectedProject}
-            onChange={(e) => setSelectedProject(e.target.value)}
-            className="border p-2 rounded"
-          >
-            <option value="">Select Project</option>
+            <select
+              className="border p-2 rounded"
+              value={priority}
+              onChange={(e) => setPriority(e.target.value)}
+            >
+              <option>High</option>
+              <option>Medium</option>
+              <option>Low</option>
+            </select>
 
-            {projects.map((project) => (
-              <option
-                key={project.id}
-                value={project.id}
-              >
-                {project.name}
-              </option>
-            ))}
-          </select>
-
-          <select
-            className="border p-2 rounded"
-            value={priority}
-            onChange={(e) => setPriority(e.target.value)}
-          >
-            <option>High</option>
-            <option>Medium</option>
-            <option>Low</option>
-          </select>
-
-          <button
-            onClick={addTask}
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-          >
-            Add Task
-          </button>
+            <button
+              onClick={addTask}
+              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+            >
+              Add Task
+            </button>
+          </div>
         </div>
-      </div>
+      )}
+
       <div className="flex gap-3 mb-6 flex-wrap">
 
         <input
@@ -420,12 +430,14 @@ function Tasks() {
                         Done
                       </button>
                     )}
-                    <button
-                      onClick={() => deleteTask(task.id)}
-                      className="text-xs px-2 py-1 bg-red-500 text-white rounded"
-                    >
-                      Delete
-                    </button>
+                    {!isCollaborator && (
+                      <button
+                        onClick={() => deleteTask(task.id)}
+                        className="text-xs px-2 py-1 bg-red-500 text-white rounded"
+                      >
+                        Delete
+                      </button>
+                    )}
                   </div>
                 </div>
               ))
