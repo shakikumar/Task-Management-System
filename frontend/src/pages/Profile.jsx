@@ -1,8 +1,26 @@
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+
 
 export default function Profile() {
   const navigate = useNavigate();
+  const [user, setUser] = useState(null);
 
+  const getAuthHeader = () => ({
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+  useEffect(() => {
+  const savedUser = JSON.parse(
+    localStorage.getItem("user")
+  );
+
+  if (savedUser) {
+    setUser(savedUser);
+  }
+}, []);
+  
   return (
     <div className="p-6 space-y-6">
 
@@ -18,9 +36,9 @@ export default function Profile() {
       <div className="bg-white shadow rounded-xl p-6">
 
         <div className="space-y-3">
-          <p><b>Name:</b> Admin User</p>
-          <p><b>Email:</b> admin@example.com</p>
-          <p><b>Role:</b> Administrator</p>
+          <p><b>Name:</b> {user?.name}</p>
+          <p><b>Email:</b> {user?.email}</p>
+          <p><b>Role:</b> {user?.role}</p>
         </div>
 
         {/* EDIT PROFILE */}

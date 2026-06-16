@@ -30,8 +30,8 @@ function App() {
         <Route path="tasks" element={<Tasks />} />
 
         <Route path="profile" element={<Profile />} />
-        <Route path="profile-settings" element={<ProfileSettings />} />
         <Route path="settings" element={<Settings />} />
+        <Route path="profile-settings" element={<ProfileSettings />} />
         <Route path="change-password" element={<ChangePassword />} />
       </Route>
 

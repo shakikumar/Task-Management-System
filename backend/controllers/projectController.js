@@ -11,7 +11,9 @@ const prisma = require('../config/prisma');
 // POST /api/projects
 const createProject = async (req, res) => {
   try {
-    const { name, description } = req.body;
+    const { name, description, status, ownerId } = req.body;
+    
+    console.log("STATUS RECEIVED:", status);
 
     // Name is required
     if (!name || name.trim() === '') {
@@ -34,7 +36,8 @@ const createProject = async (req, res) => {
       data: {
         name: name.trim(),
         description: description?.trim(),
-        createdById: req.user.id,
+        status: status || "PLANNING",
+        createdById: ownerId || req.user.id,
       },
       include: {
         createdBy: {
@@ -62,18 +65,29 @@ const createProject = async (req, res) => {
 // GET /api/projects
 const getAllProjects = async (req, res) => {
   try {
+    let whereClause = {};
+
+if (req.user.role === "PROJECT_MANAGER") {
+  whereClause = {
+    createdById: req.user.id
+  };
+}
     const projects = await prisma.project.findMany({
-      include: {
-        createdBy: {
-          select: { id: true, name: true, email: true, role: true }
-        },
-        // Count how many tasks each project has
-        _count: {
-          select: { tasks: true }
-        }
-      },
-      orderBy: { createdAt: 'desc' }
-    });
+  where: whereClause,
+
+  include: {
+    createdBy: {
+      select: { id: true, name: true, email: true, role: true }
+    },
+    _count: {
+      select: { tasks: true }
+    }
+  },
+
+  orderBy: {
+    createdAt: 'desc'
+  }
+});
 
     return res.status(200).json({
       success: true,

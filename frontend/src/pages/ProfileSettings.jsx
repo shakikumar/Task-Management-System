@@ -1,41 +1,60 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 
 function ProfileSettings() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-const handleSaveProfile = async () => {
+  const [role, setRole] = useState("");
+  useEffect(() => {
 
-  try {
+    const savedUser = JSON.parse(
+      localStorage.getItem("user")
+    );
 
-    const token = localStorage.getItem("token");
+    if (savedUser) {
+      setName(savedUser.name || "");
+      setEmail(savedUser.email || "");
+      setRole(savedUser.role || "");
+    }
 
-    await axios.put(
-      "http://localhost:5001/api/users/profile",
-      {
-        name,
-        email
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
+  }, []);
+  const handleSaveProfile = async () => {
+
+    try {
+
+      const token = localStorage.getItem("token");
+
+      const response = await axios.put(
+        "http://localhost:5001/api/users/profile",
+        {
+          name,
+          email
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
         }
-      }
-    );
+      );
 
-    alert("Profile updated successfully");
+      localStorage.setItem(
+        "user",
+        JSON.stringify(response.data.user)
+      );
 
-  } catch (error) {
+      alert("Profile updated successfully");
 
-    alert(
-      error.response?.data?.message ||
-      "Failed to update profile"
-    );
+    } catch (error) {
 
-  }
+      alert(
+        error.response?.data?.message ||
+        "Failed to update profile"
+      );
 
-};
+    }
+
+  };
   return (
     <div className="max-w-md mx-auto mt-10 p-6 border rounded-lg shadow">
       <h1 className="text-2xl font-bold mb-6 text-center">
@@ -87,7 +106,7 @@ const handleSaveProfile = async () => {
         </label>
         <input
           type="text"
-          value="COLLABORATOR"
+          value={role}
           readOnly
           className="border p-2 w-full rounded bg-gray-100"
         />

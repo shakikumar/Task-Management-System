@@ -3,6 +3,17 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 
+const currentUser = JSON.parse(
+  localStorage.getItem("user")
+);
+
+const dashboardTitle =
+  currentUser?.role === "PROJECT_MANAGER"
+    ? "Project Manager Dashboard"
+    : currentUser?.role === "COLLABORATOR"
+      ? "Collaborator Dashboard"
+      : "Admin Dashboard";
+
 export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -12,9 +23,13 @@ export default function AdminLayout() {
 
       <div className="flex min-h-screen flex-col lg:ml-[260px]">
         <Navbar
-          title="Admin Dashboard"
+          title={dashboardTitle}
           onMenuClick={() => setSidebarOpen(true)}
-          user={{ name: "Admin User", initials: "AU" }}
+          user={{
+            name: currentUser?.name || "User",
+            initials:
+              currentUser?.name?.charAt(0)?.toUpperCase() || "U",
+          }}
         />
         <main className="flex-1 overflow-y-auto">
           <Outlet />

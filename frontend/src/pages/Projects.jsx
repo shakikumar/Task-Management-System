@@ -1,87 +1,157 @@
-import { useMemo, useState } from "react";
+import  { useState, useEffect, useMemo } from 'react';
+import axios from 'axios'; // Ensure axios is imported
 
 /* -------------------------------------------------------------------------- */
-/*  Sample Projects                                                          */
+/*  Sample Projects      no need                                                    */
 /* -------------------------------------------------------------------------- */
-const USERS = [
-  "Sarah Chen",
-  "Marcus Webb",
-  "Elena Rodriguez",
-  "James Okonkwo",
-  "Priya Sharma",
-];
-const INITIAL_PROJECTS = [
-  {
-    id: 1,
-    name: "Task Management System",
-    description: "Build full-stack task management app",
-    owner: "Unassigned",
-    status: "Active",
-    members: 5,
-  },
-  {
-    id: 2,
-    name: "Lost & Found Platform",
-    description: "Campus-based item tracking system",
-    owner: "Unassigned",
-    status: "In Progress",
-    members: 3,
-  },
-];
+
 
 /* -------------------------------------------------------------------------- */
 
 function Projects() {
-  const [projects, setProjects] = useState(INITIAL_PROJECTS);
+  const [projects, setProjects] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get('http://localhost:5001/api/projects', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (response.data.success) {
+          setProjects(response.data.projects);
+        }
+      } catch (error) {
+        console.error("Error fetching projects:", error);
+      }
+    };
+    fetchProjects();
+  }, []);
 
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const token = localStorage.getItem('token');
+
+        const response = await axios.get(
+          'http://localhost:5001/api/users',
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+
+        if (response.data.success) {
+          setUsers(response.data.users);
+        }
+
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    };
+
+    fetchUsers();
+  }, []);
   const [isOpen, setIsOpen] = useState(false);
 
   const [form, setForm] = useState({
     name: "",
     description: "",
     owner: "",
-    status: "Planning",
+    status: "PLANNING",
   });
 
   const stats = useMemo(() => ({
     total: projects.length,
-    active: projects.filter(p => p.status === "Active").length,
-    inProgress: projects.filter(p => p.status === "In Progress").length,
-    planning: projects.filter(p => p.status === "Planning").length,
+    active: projects.filter(p => p.status === "ACTIVE").length,
+
+    inProgress: projects.filter(
+      p => p.status === "IN_PROGRESS"
+    ).length,
+
+    planning: projects.filter(
+      p => p.status === "PLANNING"
+    ).length,
   }), [projects]);
 
-  function handleCreate() {
+  // REPLACE YOUR ENTIRE OLD handleCreate FUNCTION WITH THIS ONE:
+  async function handleCreate() {
     if (!form.name.trim()) {
       alert("Project name is required");
       return;
     }
-    
-    if (!form.owner) {
-      alert("Please select a project owner");
-      return;
+
+    try {
+      const token = localStorage.getItem('token');
+
+      // HTTP POST request to store project permanently in Supabase
+      const response = await axios.post('http://localhost:5001/api/projects', {
+        name: form.name.trim(),
+        description: form.description.trim(),
+        status: form.status,
+        ownerId: form.owner
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.success) {
+        // Append the newly saved database project to frontend state
+        setProjects([response.data.project, ...projects]);
+
+        // Reset form controls
+        setForm({
+          name: "",
+          description: "",
+          owner: "",
+          status: "PLANNING",
+        });
+        setIsOpen(false);
+      }
+    } catch (error) {
+      console.error("Error creating project:", error);
+      alert(error.response?.data?.message || "Failed to create project.");
     }
-    const newProject = {
-      id: Date.now(),
-      ...form,
-      members: 1,
-    };
-    
-
-    setProjects([...projects, newProject]);
-
-    setForm({
-      name: "",
-      description: "",
-      owner: "",
-      status: "Planning",
-      members: 1,
-    });
-    setIsOpen(false);
   }
-  function handleDeleteProject(id) {
-    setProjects((prev) => prev.filter((project) => project.id !== id));
-  }
+  // REPLACE YOUR OLD handleDeleteProject FUNCTION WITH THIS ONE:
+  async function handleDeleteProject(id) {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this project?"
+    );
 
+    if (!confirmDelete) return;
+
+    try {
+      const token = localStorage.getItem('token');
+
+      // HTTP DELETE request to remove project rows from database
+      const response = await axios.delete(`http://localhost:5001/api/projects/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.success) {
+        setProjects((prev) => prev.filter((project) => project.id !== id));
+      }
+    } catch (error) {
+      console.error("Error deleting project:", error);
+      alert(error.response?.data?.message || "Failed to delete project.");
+    }
+  }
+  const filteredProjects = projects.filter((project) => {
+
+    const matchesSearch =
+      project.name
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase());
+
+    const matchesStatus =
+      !statusFilter ||
+      project.status === statusFilter;
+
+    return matchesSearch && matchesStatus;
+  });
   return (
     <div className="p-6">
 
@@ -124,32 +194,56 @@ function Projects() {
         </div>
 
       </div>
+      <div className="flex gap-3 mb-6">
+
+        <input
+          type="text"
+          placeholder="Search project..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="border p-2 rounded w-64"
+        />
+
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="border p-2 rounded"
+        >
+          <option value="">All Status</option>
+          <option value="PLANNING">Planning</option>
+          <option value="IN_PROGRESS">In Progress</option>
+          <option value="ACTIVE">Active</option>
+          <option value="COMPLETED">Completed</option>
+        </select>
+
+      </div>
 
       {/* Projects */}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 
-        {projects.map(project => (
+        {filteredProjects.map(project => (
           <div key={project.id} className="border rounded-lg p-4 bg-white">
             <h2 className="font-semibold text-lg">{project.name}</h2>
             <p className="text-sm text-gray-500">{project.description}</p>
 
             <div className="mt-3 text-sm">
-              <p>Owner: {project.owner}</p>
-              <p>Members: {project.members}</p>
+              <p>Owner: {project.createdBy?.name || "Project Manager"}</p>
+              <p>Members: {project.members || 0}</p>
             </div>
 
             <div className="mt-3 flex items-center justify-between">
-  <span className="text-xs px-2 py-1 bg-gray-100 rounded">
-    {project.status}
-  </span>
+              <span className="text-xs px-2 py-1 bg-gray-100 rounded">
+                {project.status}
+              </span>
 
-  <button
-    onClick={() => handleDeleteProject(project.id)}
-    className="text-xs text-red-600 hover:text-red-800"
-  >
-    Delete
-  </button>
-</div>
+              <button
+                onClick={() => handleDeleteProject(project.id)}
+                className="text-xs text-red-600 hover:text-red-800"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         ))}
 
@@ -164,25 +258,30 @@ function Projects() {
             <h2 className="text-lg font-bold mb-4">Create Project</h2>
 
             <select
-  className="w-full border p-2 mb-2 rounded"
-  value={form.owner}
-  onChange={(e) => setForm({ ...form, owner: e.target.value })}
->
-  <option value="">Select Owner</option>
-  {USERS.map((u) => (
-    <option key={u} value={u}>
-      {u}
-    </option>
-  ))}
-</select>
+              className="w-full border p-2 mb-2 rounded"
+              value={form.owner}
+              onChange={(e) => setForm({ ...form, owner: e.target.value })}
+            >
+              <option value="">Select Owner</option>
+              {users
+                .filter(user => user.role === "PROJECT_MANAGER")
+                .map(user => (
+                  <option
+                    key={user.id}
+                    value={user.id}
+                  >
+                    {user.name}
+                  </option>
+                ))}
+            </select>
 
-<input
-  type="text"
-  placeholder="Project Name"
-  className="w-full border p-2 mb-2 rounded"
-  value={form.name}
-  onChange={(e) => setForm({ ...form, name: e.target.value })}
-/>
+            <input
+              type="text"
+              placeholder="Project Name"
+              className="w-full border p-2 mb-2 rounded"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+            />
             <textarea
               placeholder="Description"
               className="w-full border p-2 mb-2 rounded"
@@ -197,10 +296,10 @@ function Projects() {
               value={form.status}
               onChange={(e) => setForm({ ...form, status: e.target.value })}
             >
-              <option>Planning</option>
-              <option>In Progress</option>
-              <option>Active</option>
-              <option>Completed</option>
+              <option value="PLANNING">Planning</option>
+              <option value="IN_PROGRESS">In Progress</option>
+              <option value="ACTIVE">Active</option>
+              <option value="COMPLETED">Completed</option>
             </select>
 
             <div className="flex justify-end gap-2">
