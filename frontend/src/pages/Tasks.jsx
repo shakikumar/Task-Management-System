@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import TaskDetailsModal from "../components/TaskDetailsModal";
 
 
 
 function Tasks() {
   const [tasks, setTasks] = useState([]);
+  const [selectedTask, setSelectedTask] = useState(null);
+ 
 
   const [title, setTitle] = useState("");
   const [assignee, setAssignee] = useState("");
@@ -364,9 +367,10 @@ function Tasks() {
             ) : (
               getTasksByStatus(col).map((task) => (
                 <div
-                  key={task.id}
-                  className="bg-white p-3 mb-3 rounded-lg shadow-sm border hover:shadow-md transition"
-                >
+  key={task.id}
+  onClick={() => setSelectedTask(task)}
+  className="bg-white p-3 mb-3 rounded-lg shadow-sm border hover:shadow-md transition cursor-pointer"
+>
                   <div className="flex items-center justify-between">
                     <h3 className="font-medium">{task.title}</h3>
 
@@ -443,6 +447,12 @@ function Tasks() {
           </div>
         ))}
       </div>
+      {selectedTask && (
+  <TaskDetailsModal
+    task={selectedTask}
+    onClose={() => setSelectedTask(null)}
+  />
+)}
     </div>
   );
 }
