@@ -1,0 +1,1216 @@
+{
+  "info": {
+    "_postman_id": "tms-phase2-collection-001",
+    "name": "Task Management System — Phase 2 API Collection",
+    "description": "Complete Postman collection for the Task Management System (TMS) backend API.\n\nTech Stack: Node.js + Express + PostgreSQL (Supabase) + Prisma + JWT\n\nBase URL: http://localhost:5000\n\nInstructions:\n1. Run the Login request first.\n2. The JWT token is automatically stored in the `authToken` collection variable.\n3. All protected requests use {{authToken}} automatically.\n\nPrepared by: Member E — API Verification Lead\nPhase 2 — University Group Project",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string",
+      "description": "Backend server base URL"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string",
+      "description": "JWT token — automatically set by the Login request"
+    },
+    {
+      "key": "testUserId",
+      "value": "",
+      "type": "string",
+      "description": "Set this to a valid user UUID after creating or listing users"
+    },
+    {
+      "key": "testTaskId",
+      "value": "",
+      "type": "string",
+      "description": "Set this to a valid task UUID after creating or listing tasks"
+    },
+    {
+      "key": "testProjectId",
+      "value": "",
+      "type": "string",
+      "description": "Set this to a valid project UUID after creating or listing projects"
+    }
+  ],
+  "item": [
+    {
+      "name": "🔐 Authentication",
+      "description": "Authentication endpoints — Login, Register/Onboard, Change Password",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Automatically store JWT token after successful login",
+                  "if (pm.response.code === 200) {",
+                  "    const responseData = pm.response.json();",
+                  "    if (responseData.token) {",
+                  "        pm.collectionVariables.set('authToken', responseData.token);",
+                  "        console.log('✅ Token saved to collection variable: authToken');",
+                  "    }",
+                  "}",
+                  "",
+                  "// Assertions",
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has success: true', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('Response contains JWT token', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data.token).to.be.a('string').and.not.be.empty;",
+                  "});",
+                  "",
+                  "pm.test('Response contains user object', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data.user).to.have.property('id');",
+                  "    pm.expect(data.user).to.have.property('email');",
+                  "    pm.expect(data.user).to.have.property('role');",
+                  "    pm.expect(data.user).to.not.have.property('password');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@tms.local\",\n  \"password\": \"SecurePassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Authenticate a user with email and password. Returns a JWT token.\n\nThe test script automatically extracts and stores the token in the `authToken` collection variable for use by all other requests.\n\nExpected: 200 OK with { success, message, token, user }"
+          },
+          "response": [
+            {
+              "name": "200 — Login Successful",
+              "originalRequest": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"admin@tms.local\",\n  \"password\": \"SecurePassword123!\"\n}"
+                },
+                "url": {"raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"]}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Login successful\",\n  \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n  \"user\": {\n    \"id\": \"a1111111-1111-1111-1111-111111111111\",\n    \"name\": \"Admin User\",\n    \"email\": \"admin@tms.local\",\n    \"role\": \"ADMINISTRATOR\",\n    \"mustResetPassword\": false\n  }\n}"
+            },
+            {
+              "name": "400 — Missing Credentials",
+              "originalRequest": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n  \"email\": \"admin@tms.local\"\n}"},
+                "url": {"raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"]}
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Please provide both email and password\"\n}"
+            },
+            {
+              "name": "401 — Invalid Credentials",
+              "originalRequest": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n  \"email\": \"admin@tms.local\",\n  \"password\": \"wrongpassword\"\n}"},
+                "url": {"raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"]}
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"success\": false,\n  \"message\": \"Invalid credentials\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Register / Onboard New User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response has success: true', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('New user has mustResetPassword: true', function () {",
+                  "    const data = pm.response.json();",
+                  "    if (data.user) {",
+                  "        pm.expect(data.user.mustResetPassword).to.be.true;",
+                  "    }",
+                  "});",
+                  "",
+                  "pm.test('Password not exposed in response', function () {",
+                  "    const data = pm.response.json();",
+                  "    if (data.user) {",
+                  "        pm.expect(data.user).to.not.have.property('password');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Collaborator\",\n  \"email\": \"testcollab@tms.local\",\n  \"role\": \"COLLABORATOR\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/onboard",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "onboard"]
+            },
+            "description": "Onboard a new user into the system. No authentication required.\n\nRole must be one of: ADMINISTRATOR, PROJECT_MANAGER, COLLABORATOR\n\nThe new user will have `mustResetPassword: true` and must change their password on first login.\n\nExpected: 201 Created with user object (no password field)"
+          },
+          "response": [
+            {
+              "name": "201 — User Onboarded Successfully",
+              "originalRequest": {
+                "method": "POST",
+                "header": [{"key": "Content-Type", "value": "application/json"}],
+                "body": {"mode": "raw", "raw": "{\n  \"name\": \"Test Collaborator\",\n  \"email\": \"testcollab@tms.local\",\n  \"role\": \"COLLABORATOR\"\n}"},
+                "url": {"raw": "{{baseUrl}}/api/auth/onboard", "host": ["{{baseUrl}}"], "path": ["api", "auth", "onboard"]}
+              },
+              "status": "Created",
+              "code": 201,
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"success\": true,\n  \"message\": \"User onboarded successfully\",\n  \"user\": {\n    \"id\": \"d4444444-4444-4444-4444-444444444444\",\n    \"name\": \"Test Collaborator\",\n    \"email\": \"testcollab@tms.local\",\n    \"role\": \"COLLABORATOR\",\n    \"mustResetPassword\": true,\n    \"isActive\": true\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Change Password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Password changed successfully', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data.success).to.be.true;",
+                  "    pm.expect(data.message).to.include('Password');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{"key": "token", "value": "{{authToken}}", "type": "string"}]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"SecurePassword123!\",\n  \"newPassword\": \"NewSecurePassword456!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/change-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "change-password"]
+            },
+            "description": "Change the authenticated user's password.\n\nRequires a valid JWT in Authorization header (Bearer token).\nRequires both `currentPassword` (must match DB) and `newPassword`.\n\nOn success, sets `mustResetPassword: false` in the database.\n\nExpected: 200 OK"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "👤 Users",
+      "description": "User management endpoints. Most require ADMINISTRATOR role.",
+      "item": [
+        {
+          "name": "Get All Users",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains users array', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data).to.have.property('success', true);",
+                  "    pm.expect(data.users || data).to.be.an('array').or.to.have.property('users');",
+                  "});",
+                  "",
+                  "pm.test('Users do not contain password fields', function () {",
+                  "    const data = pm.response.json();",
+                  "    const users = data.users || data;",
+                  "    if (Array.isArray(users) && users.length > 0) {",
+                  "        users.forEach(function(user) {",
+                  "            pm.expect(user).to.not.have.property('password');",
+                  "        });",
+                  "    }",
+                  "});",
+                  "",
+                  "// Auto-store first user ID for subsequent requests",
+                  "const data = pm.response.json();",
+                  "const users = data.users || data;",
+                  "if (Array.isArray(users) && users.length > 0) {",
+                  "    pm.collectionVariables.set('testUserId', users[0].id);",
+                  "    console.log('✅ Stored testUserId:', users[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{"key": "token", "value": "{{authToken}}", "type": "string"}]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"]
+            },
+            "description": "Retrieve a list of all users in the system.\n\nRequired Roles: ADMINISTRATOR, PROJECT_MANAGER\n\nExpected: 200 OK with array of user objects\n\nNote: COLLABORATOR role will receive 403 Forbidden."
+          },
+          "response": [
+            {
+              "name": "200 — Users Retrieved",
+              "originalRequest": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+                "url": {"raw": "{{baseUrl}}/api/users", "host": ["{{baseUrl}}"], "path": ["api", "users"]}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"success\": true,\n  \"count\": 3,\n  \"users\": [\n    {\n      \"id\": \"a1111111-1111-1111-1111-111111111111\",\n      \"name\": \"Admin User\",\n      \"email\": \"admin@tms.local\",\n      \"role\": \"ADMINISTRATOR\",\n      \"isActive\": true,\n      \"mustResetPassword\": false,\n      \"createdAt\": \"2026-06-01T00:00:00.000Z\",\n      \"updatedAt\": \"2026-06-01T00:00:00.000Z\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('User created successfully', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data.success).to.be.true;",
+                  "});",
+                  "",
+                  "// Store the new user ID",
+                  "const data = pm.response.json();",
+                  "if (data.user && data.user.id) {",
+                  "    pm.collectionVariables.set('testUserId', data.user.id);",
+                  "    console.log('✅ New user ID stored:', data.user.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{"key": "token", "value": "{{authToken}}", "type": "string"}]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"New Project Manager\",\n  \"email\": \"pm2@tms.local\",\n  \"password\": \"TempPassword123!\",\n  \"role\": \"PROJECT_MANAGER\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"]
+            },
+            "description": "Create a new user in the system.\n\nRequired Role: ADMINISTRATOR only\n\nPassword will be hashed before storage. User will have `mustResetPassword: true` by default.\n\nExpected: 201 Created with new user object"
+          },
+          "response": []
+        },
+        {
+          "name": "Get User by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains user object', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data.success).to.be.true;",
+                  "    const user = data.user || data;",
+                  "    pm.expect(user).to.have.property('id');",
+                  "    pm.expect(user).to.have.property('email');",
+                  "    pm.expect(user).to.have.property('role');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{"key": "token", "value": "{{authToken}}", "type": "string"}]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{testUserId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "{{testUserId}}"]
+            },
+            "description": "Retrieve a single user by their UUID.\n\nRequired Roles: ADMINISTRATOR, PROJECT_MANAGER\n\nReplace `{{testUserId}}` with a valid user UUID.\n\nExpected: 200 OK with user object or 404 if not found."
+          },
+          "response": []
+        },
+        {
+          "name": "Update User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('User updated successfully', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data.success).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{"key": "token", "value": "{{authToken}}", "type": "string"}]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated User Name\",\n  \"role\": \"COLLABORATOR\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{testUserId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "{{testUserId}}"]
+            },
+            "description": "Update any user's fields (name, role, isActive).\n\nRequired Role: ADMINISTRATOR only\n\nExpected: 200 OK with updated user object"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Own Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Profile updated successfully', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data.success).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{"key": "token", "value": "{{authToken}}", "type": "string"}]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"My Updated Name\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "profile"]
+            },
+            "description": "Update the currently authenticated user's own profile.\n\nRequired Role: Any authenticated user\n\nUpdates the profile of the user identified by the JWT token.\n\nExpected: 200 OK"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 204', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Deletion confirmed', function () {",
+                  "        const data = pm.response.json();",
+                  "        pm.expect(data.success).to.be.true;",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{"key": "token", "value": "{{authToken}}", "type": "string"}]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{testUserId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "{{testUserId}}"]
+            },
+            "description": "Permanently delete a user by UUID.\n\nRequired Role: ADMINISTRATOR only\n\nCascade: Deletes all related comments, attachments, and notifications.\n\n⚠️ WARNING: This action is irreversible. Update `testUserId` before running.\n\nExpected: 200 OK with confirmation message"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "✅ Tasks",
+      "description": "Task management endpoints. Roles: ADMINISTRATOR and PROJECT_MANAGER have full access. COLLABORATOR can view own tasks and update status only.",
+      "item": [
+        {
+          "name": "Get All Tasks",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains tasks', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data.success).to.be.true;",
+                  "    pm.expect(data).to.have.property('tasks');",
+                  "    pm.expect(data.tasks).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Response has count field', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data).to.have.property('count');",
+                  "    pm.expect(data.count).to.equal(data.tasks.length);",
+                  "});",
+                  "",
+                  "// Auto-store first task ID",
+                  "const data = pm.response.json();",
+                  "if (data.tasks && data.tasks.length > 0) {",
+                  "    pm.collectionVariables.set('testTaskId', data.tasks[0].id);",
+                  "    console.log('✅ Stored testTaskId:', data.tasks[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{"key": "token", "value": "{{authToken}}", "type": "string"}]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "TODO",
+                  "description": "Filter by status: TODO | IN_PROGRESS | COMPLETED",
+                  "disabled": true
+                },
+                {
+                  "key": "priority",
+                  "value": "HIGH",
+                  "description": "Filter by priority: LOW | MEDIUM | HIGH",
+                  "disabled": true
+                },
+                {
+                  "key": "projectId",
+                  "value": "{{testProjectId}}",
+                  "description": "Filter by project UUID",
+                  "disabled": true
+                },
+                {
+                  "key": "assignedUserId",
+                  "value": "{{testUserId}}",
+                  "description": "Filter by assigned user UUID (ignored for Collaborators)",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "dueDate",
+                  "description": "Sort by: dueDate | priority | createdAt",
+                  "disabled": true
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "asc",
+                  "description": "Sort direction: asc | desc",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Retrieve all tasks. Supports filtering and sorting via query parameters.\n\nRole behavior:\n- ADMINISTRATOR / PROJECT_MANAGER: All tasks returned\n- COLLABORATOR: Only own assigned tasks returned (assignedUserId filter auto-applied)\n\nAvailable filters (enable in Params tab):\n- status: TODO | IN_PROGRESS | COMPLETED\n- priority: LOW | MEDIUM | HIGH\n- projectId: UUID\n- assignedUserId: UUID\n- sortBy: dueDate | priority | createdAt\n- sortOrder: asc | desc"
+          },
+          "response": [
+            {
+              "name": "200 — Tasks Retrieved",
+              "originalRequest": {
+                "method": "GET",
+                "header": [{"key": "Authorization", "value": "Bearer {{authToken}}"}],
+                "url": {"raw": "{{baseUrl}}/api/tasks", "host": ["{{baseUrl}}"], "path": ["api", "tasks"]}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"success\": true,\n  \"count\": 2,\n  \"tasks\": [\n    {\n      \"id\": \"t1111111-1111-1111-1111-111111111111\",\n      \"title\": \"Implement JWT Authentication\",\n      \"description\": \"Secure all endpoints with JWT middleware\",\n      \"status\": \"TODO\",\n      \"priority\": \"HIGH\",\n      \"dueDate\": \"2026-06-30T12:00:00.000Z\",\n      \"projectId\": \"p1111111-1111-1111-1111-111111111111\",\n      \"assignedUserId\": \"u2222222-2222-2222-2222-222222222222\",\n      \"createdAt\": \"2026-06-16T00:00:00.000Z\",\n      \"updatedAt\": \"2026-06-16T00:00:00.000Z\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Task",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Task created with correct fields', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data.success).to.be.true;",
+                  "    const task = data.task || data;",
+                  "    pm.expect(task).to.have.property('id');",
+                  "    pm.expect(task).to.have.property('title');",
+                  "    pm.expect(task).to.have.property('status');",
+                  "    pm.expect(task).to.have.property('priority');",
+                  "});",
+                  "",
+                  "pm.test('Task status defaults to TODO', function () {",
+                  "    const data = pm.response.json();",
+                  "    const task = data.task || data;",
+                  "    if (task.status) {",
+                  "        pm.expect(task.status).to.equal('TODO');",
+                  "    }",
+                  "});",
+                  "",
+                  "// Store task ID",
+                  "const data = pm.response.json();",
+                  "const task = data.task || data;",
+                  "if (task.id) {",
+                  "    pm.collectionVariables.set('testTaskId', task.id);",
+                  "    console.log('✅ Stored testTaskId:', task.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{"key": "token", "value": "{{authToken}}", "type": "string"}]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Implement JWT Middleware\",\n  \"description\": \"Add JWT authentication middleware to protect all API routes\",\n  \"priority\": \"HIGH\",\n  \"status\": \"TODO\",\n  \"dueDate\": \"2026-07-30T12:00:00Z\",\n  \"projectId\": \"{{testProjectId}}\",\n  \"assignedUserId\": \"{{testUserId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks"]
+            },
+            "description": "Create a new task.\n\nRequired Role: ADMINISTRATOR or PROJECT_MANAGER\n\nRequired fields: title, projectId, assignedUserId\nOptional fields: description, priority (LOW|MEDIUM|HIGH), status (TODO|IN_PROGRESS|COMPLETED), dueDate\n\n⚠️ Ensure `testProjectId` and `testUserId` are set in collection variables before running.\n\nExpected: 201 Created with task object"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Task by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Task object returned', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data.success).to.be.true;",
+                  "    const task = data.task || data;",
+                  "    pm.expect(task).to.have.property('id');",
+                  "    pm.expect(task).to.have.property('title');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{"key": "token", "value": "{{authToken}}", "type": "string"}]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/{{testTaskId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "{{testTaskId}}"]
+            },
+            "description": "Retrieve a single task by its UUID.\n\nRole behavior:\n- ADMINISTRATOR / PROJECT_MANAGER: Any task\n- COLLABORATOR: Only own assigned tasks (403 for others)\n\nExpected: 200 OK with task object or 404 if not found."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Task",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Task updated successfully', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data.success).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{"key": "token", "value": "{{authToken}}", "type": "string"}]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Implement JWT Middleware (Updated)\",\n  \"status\": \"IN_PROGRESS\",\n  \"priority\": \"HIGH\",\n  \"description\": \"Updated description — JWT middleware implementation underway\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/{{testTaskId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "{{testTaskId}}"]
+            },
+            "description": "Update task fields.\n\nRole behavior:\n- ADMINISTRATOR / PROJECT_MANAGER: Can update all fields\n- COLLABORATOR: Can only update `status` field if assigned to them (403 for other fields)\n\nExpected: 200 OK with updated task"
+          },
+          "response": []
+        },
+        {
+          "name": "Assign Task to User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Task assignment updated', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data.success).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{"key": "token", "value": "{{authToken}}", "type": "string"}]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"assignedUserId\": \"{{testUserId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/{{testTaskId}}/assign",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "{{testTaskId}}", "assign"]
+            },
+            "description": "Assign or re-assign a task to a different user.\n\nRequired Role: ADMINISTRATOR or PROJECT_MANAGER\n\nThe assigned user must be active (`isActive: true`).\n\n⚠️ Set `testTaskId` and `testUserId` in collection variables before running.\n\nExpected: 200 OK with updated task"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Task",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 204', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Deletion confirmed', function () {",
+                  "        const data = pm.response.json();",
+                  "        pm.expect(data.success).to.be.true;",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{"key": "token", "value": "{{authToken}}", "type": "string"}]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/{{testTaskId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "{{testTaskId}}"]
+            },
+            "description": "Permanently delete a task by UUID.\n\nRequired Role: ADMINISTRATOR or PROJECT_MANAGER\n\nCascade: Deletes all related Comments and Attachments for this task.\n\n⚠️ WARNING: Irreversible action.\n\nExpected: 200 OK with deletion confirmation"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📁 Projects",
+      "description": "Project management endpoints. Requires ADMINISTRATOR or PROJECT_MANAGER role.",
+      "item": [
+        {
+          "name": "Get All Projects",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Projects array returned', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data.success).to.be.true;",
+                  "});",
+                  "",
+                  "// Auto-store first project ID",
+                  "const data = pm.response.json();",
+                  "const projects = data.projects || data;",
+                  "if (Array.isArray(projects) && projects.length > 0) {",
+                  "    pm.collectionVariables.set('testProjectId', projects[0].id);",
+                  "    console.log('✅ Stored testProjectId:', projects[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{"key": "token", "value": "{{authToken}}", "type": "string"}]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/projects",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "projects"]
+            },
+            "description": "Retrieve all projects.\n\nRequired Roles: ADMINISTRATOR, PROJECT_MANAGER\n\nExpected: 200 OK with project list"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Project",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Project created successfully', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data.success).to.be.true;",
+                  "});",
+                  "",
+                  "// Store project ID",
+                  "const data = pm.response.json();",
+                  "const project = data.project || data;",
+                  "if (project.id) {",
+                  "    pm.collectionVariables.set('testProjectId', project.id);",
+                  "    console.log('✅ Stored testProjectId:', project.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{"key": "token", "value": "{{authToken}}", "type": "string"}]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"TMS Phase 3 Development\",\n  \"description\": \"Backend enhancements, rate limiting, and notification system\",\n  \"status\": \"PLANNING\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/projects",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "projects"]
+            },
+            "description": "Create a new project.\n\nRequired Roles: ADMINISTRATOR, PROJECT_MANAGER\n\nStatus options: PLANNING | IN_PROGRESS | ACTIVE | COMPLETED\n\nExpected: 201 Created with project object"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Project by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Project object returned', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data.success).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{"key": "token", "value": "{{authToken}}", "type": "string"}]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/projects/{{testProjectId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "projects", "{{testProjectId}}"]
+            },
+            "description": "Get a project by its UUID.\n\nRequired Roles: ADMINISTRATOR, PROJECT_MANAGER\n\nExpected: 200 OK with project details"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Project Tasks",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Tasks array for project returned', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data.success).to.be.true;",
+                  "    pm.expect(data).to.have.property('tasks');",
+                  "    pm.expect(data.tasks).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{"key": "token", "value": "{{authToken}}", "type": "string"}]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/projects/{{testProjectId}}/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "projects", "{{testProjectId}}", "tasks"]
+            },
+            "description": "Get all tasks belonging to a specific project (Project Isolation endpoint).\n\nRequired Roles: Any authenticated user\n\nCollaborators see only their own tasks within the project.\n\nExpected: 200 OK with tasks array and count"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Project",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Project updated successfully', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data.success).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{"key": "token", "value": "{{authToken}}", "type": "string"}]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"TMS Phase 3 Development (Updated)\",\n  \"status\": \"IN_PROGRESS\",\n  \"description\": \"Phase 3 is now actively in development\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/projects/{{testProjectId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "projects", "{{testProjectId}}"]
+            },
+            "description": "Update a project's fields.\n\nRequired Roles: ADMINISTRATOR, PROJECT_MANAGER\n\nExpected: 200 OK with updated project"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Project",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 204', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Deletion confirmed', function () {",
+                  "        const data = pm.response.json();",
+                  "        pm.expect(data.success).to.be.true;",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{"key": "token", "value": "{{authToken}}", "type": "string"}]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/projects/{{testProjectId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "projects", "{{testProjectId}}"]
+            },
+            "description": "Permanently delete a project and all its tasks.\n\nRequired Roles: ADMINISTRATOR, PROJECT_MANAGER\n\nCascade: Deletes all Tasks (and their Comments/Attachments) linked to this project.\n\n⚠️ WARNING: Irreversible action.\n\nExpected: 200 OK with deletion confirmation"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🩺 Health Check",
+      "description": "Basic server health check",
+      "item": [
+        {
+          "name": "Server Health Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Server is running', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data.message).to.include('running');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": ["{{baseUrl}}"],
+              "path": [""]
+            },
+            "description": "Basic health check — confirms the backend server is running.\n\nExpected: 200 OK with { message: '✅ TMS Backend Server is running!' }"
+          },
+          "response": [
+            {
+              "name": "200 — Server Running",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {"raw": "{{baseUrl}}/", "host": ["{{baseUrl}}"], "path": [""]}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [{"key": "Content-Type", "value": "application/json"}],
+              "body": "{\n  \"message\": \"✅ TMS Backend Server is running!\"\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

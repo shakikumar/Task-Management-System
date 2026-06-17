@@ -6,6 +6,7 @@
 require('dotenv').config();           // Loads your .env file
 
 const taskRoutes = require('./routes/taskRoutes');
+const commentRoutes = require('./routes/commentRoutes');
 const express = require('express');   // The web server framework
 const cors = require('cors');
 const helmet = require('helmet');         // Allows frontend to talk to backend
@@ -70,7 +71,8 @@ app.use('/api/projects', projectRoutes);
 
 // Phase 3(NEW)
 app.use('/api/tasks', taskRoutes);
-// A simple test route — visit http://localhost:5000/ to check if server is running
+app.use('/api/comments', commentRoutes);
+// A simple test route — visit http://localhost:5001/ to check if server is running
 app.get('/', (req, res) => {
   res.json({ message: '✅ TMS Backend Server is running!' });
 });
