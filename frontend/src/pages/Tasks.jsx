@@ -368,7 +368,6 @@ function Tasks() {
               getTasksByStatus(col).map((task) => (
                 <div
   key={task.id}
-  onClick={() => setSelectedTask(task)}
   className="bg-white p-3 mb-3 rounded-lg shadow-sm border hover:shadow-md transition cursor-pointer"
 >
                   <div className="flex items-center justify-between">
@@ -400,6 +399,12 @@ function Tasks() {
                   </span>
 
                   <div className="flex gap-2 mt-3 flex-wrap">
+                  <button
+  onClick={() => setSelectedTask(task)}
+  className="text-xs px-2 py-1 bg-indigo-500 text-white rounded"
+>
+  💬 Comments
+</button>
                     {task.status !== "To Do" && (
                       <button
                         onClick={() =>
