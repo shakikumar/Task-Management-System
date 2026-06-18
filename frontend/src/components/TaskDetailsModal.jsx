@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import FileDropZone from "./FileDropZone";
 
 const TaskDetailsModal = ({ task, onClose }) => {
   const [commentText, setCommentText] = useState("");
@@ -9,6 +10,8 @@ const [isEditing, setIsEditing] = useState(false);
 const [editTitle, setEditTitle] = useState("");
 const [editPriority, setEditPriority] = useState("");
 const [attachments, setAttachments] = useState([]);
+const [uploading, setUploading] = useState(false);
+const [uploadProgress, setUploadProgress] = useState(0);
 
   if (!task) return null;
 
@@ -67,16 +70,20 @@ const [attachments, setAttachments] = useState([]);
 
   const handleDeleteComment = async (commentId) => {
     try {
-      await axios.delete(
-        `http://localhost:5001/api/comments/${commentId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-  
-      setComments(comments.filter((c) => c.id !== commentId));
+      const confirmDelete = window.confirm("Are you sure you want to delete this comment?");
+
+if (!confirmDelete) return;
+
+await axios.delete(
+  `http://localhost:5001/api/comments/${commentId}`,
+  {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  }
+);
+
+setComments(comments.filter((c) => c.id !== commentId));
     } catch (error) {
       console.log("Failed to delete comment:", error);
     }
@@ -103,6 +110,21 @@ const [attachments, setAttachments] = useState([]);
       console.log(error);
       alert("Failed to update task");
     }
+  };
+  const simulateUpload = (file) => {
+    setUploading(true);
+    setUploadProgress(0);
+  
+    const interval = setInterval(() => {
+      setUploadProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          setUploading(false);
+          return 100;
+        }
+        return prev + 10;
+      });
+    }, 100);
   };
 
   return (
@@ -270,38 +292,58 @@ const [attachments, setAttachments] = useState([]);
 
 <h3 className="font-semibold mb-2">Attachments</h3>
 
-<div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-  <p className="text-gray-500 mb-2">
-    Drag & Drop files here
-  </p>
+<FileDropZone
+  onFileSelect={(file) => {
+    simulateUpload(file);
+    setAttachments([...attachments, file]);
+  }}
+/>
 
-  <input
-    type="file"
-    multiple
-    onChange={(e) =>
-      setAttachments([
-        ...attachments,
-        ...Array.from(e.target.files),
-      ])
-    }
-  />
-</div>
+{/* ✅  PROGRESS BAR HERE */}
+{uploading && (
+  <div className="mb-3 p-3 bg-gray-50 border rounded">
+    <p className="text-sm mb-1">Uploading...</p>
+
+    <div className="w-full bg-gray-200 rounded h-2 overflow-hidden">
+      <div
+        className="h-2 bg-blue-500 transition-all"
+        style={{ width: `${uploadProgress}%` }}
+      />
+    </div>
+
+    <p className="text-xs text-gray-500 mt-1">
+      {uploadProgress}%
+    </p>
+  </div>
+)}
 
 <div className="mt-3 space-y-2">
   {attachments.map((file, index) => (
     <div
       key={index}
-      className="flex justify-between items-center bg-gray-100 p-2 rounded"
+      className="flex items-center justify-between bg-gray-50 border rounded-lg px-3 py-2"
     >
-      <span className="text-sm">{file.name}</span>
+      {/* Left side */}
+      <div className="flex items-center gap-2">
+        <span className="text-lg">
+          {file.type?.includes("pdf")
+            ? "📄"
+            : file.type?.includes("image")
+            ? "🖼️"
+            : "📎"}
+        </span>
 
+        <span className="text-sm text-gray-700 truncate max-w-[200px]">
+          {file.name}
+        </span>
+      </div>
+
+      {/* Right side */}
       <button
         onClick={() =>
-          setAttachments(
-            attachments.filter((_, i) => i !== index)
-          )
+          setAttachments(attachments.filter((_, i) => i !== index))
         }
-        className="text-red-500 text-sm"
+        className="text-red-500 text-xs hover:underline"
       >
         Remove
       </button>
