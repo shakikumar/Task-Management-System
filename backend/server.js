@@ -17,7 +17,6 @@ const swaggerSpec = require('./config/swagger');
 
 // ── PHASE 1 ROUTE ────────────────────────────────────────────────────────────
 const authRoutes = require('./routes/authRoutes');
-const attachmentRoutes = require('./routes/attachmentRoutes');
 
 // ── PHASE 2 ROUTES (NEW) ─────────────────────────────────────────────────────
 const userRoutes = require('./routes/userRoutes');
@@ -40,7 +39,6 @@ app.use(cors({
 // This tells Express to understand JSON data sent from the frontend
 // Without this, req.body would be empty when frontend sends data
 app.use(express.json());
-app.use('/uploads', express.static('uploads'));
 
 // ==============================
 // ROUTES (the URLs your server listens to)
@@ -63,7 +61,6 @@ app.get('/api/docs.json', (req, res) => {
 
 // Phase 1
 app.use('/api/auth', authRoutes);
-app.use('/api/attachments', attachmentRoutes);
 
 // Phase 2 (NEW)
 app.use('/api/users', userRoutes);
