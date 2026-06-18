@@ -1,39 +1,183 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 
 const TaskDetailsModal = ({ task, onClose }) => {
   const [commentText, setCommentText] = useState("");
   const [comments, setComments] = useState([]);
 
+const [isEditing, setIsEditing] = useState(false);
+const [editTitle, setEditTitle] = useState("");
+const [editPriority, setEditPriority] = useState("");
+const [attachments, setAttachments] = useState([]);
+
   if (!task) return null;
 
-  const handleAddComment = () => {
+  // ✅ FETCH COMMENTS FROM BACKEND
+  const fetchComments = async () => {
+    try {
+      const res = await axios.get(
+        `http://localhost:5001/api/comments/task/${task.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      setComments(res.data.comments);
+    } catch (error) {
+      console.log("Failed to load comments:", error);
+    }
+  };
+
+  // ✅ LOAD COMMENTS WHEN MODAL OPENS
+  useEffect(() => {
+    if (task) {
+      fetchComments();
+    }
+  }, [task]);
+
+  useEffect(() => {
+    if (task) {
+      setEditTitle(task.title || "");
+      setEditPriority(task.priority || "MEDIUM");
+    }
+  }, [task]);
+
+  const handleAddComment = async () => {
     if (!commentText.trim()) return;
+  
+    try {
+      const res = await axios.post(
+        `http://localhost:5001/api/comments/task/${task.id}`,
+        { content: commentText },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+  
+      setComments([res.data.comment, ...comments]);
+      setCommentText("");
+    } catch (error) {
+      console.log("Failed to add comment:", error);
+    }
+  };
 
-    const newComment = {
-      id: Date.now(),
-      text: commentText,
-      user: "You",
-    };
-
-    setComments([...comments, newComment]);
-    setCommentText("");
+  const handleDeleteComment = async (commentId) => {
+    try {
+      await axios.delete(
+        `http://localhost:5001/api/comments/${commentId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+  
+      setComments(comments.filter((c) => c.id !== commentId));
+    } catch (error) {
+      console.log("Failed to delete comment:", error);
+    }
+  };
+  const handleSaveTask = async () => {
+    try {
+      await axios.put(
+        `http://localhost:5001/api/tasks/${task.id}`,
+        {
+          title: editTitle,
+          priority: editPriority,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+  
+      setIsEditing(false);
+  
+      alert("Task updated successfully");
+    } catch (error) {
+      console.log(error);
+      alert("Failed to update task");
+    }
   };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white w-[700px] rounded-xl p-6 shadow-lg">
+      <div className="bg-white w-[700px] max-h-[90vh] overflow-y-auto rounded-xl p-6 shadow-lg">
 
         {/* Header */}
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">{task.title}</h2>
+        <div className="flex justify-between items-start mb-4">
 
-          <button
-            onClick={onClose}
-            className="text-red-500 font-bold"
-          >
-            X
-          </button>
-        </div>
+  {/* Title / Editable Title */}
+  <div className="flex-1 pr-4">
+    {isEditing ? (
+      <input
+        value={editTitle}
+        onChange={(e) => setEditTitle(e.target.value)}
+        className="border border-gray-300 rounded px-3 py-2 w-full 
+                   focus:outline-none focus:ring-2 focus:ring-blue-400"
+      />
+    ) : (
+      <h2 className="text-xl font-bold text-gray-800">
+        {task.title}
+      </h2>
+    )}
+  </div>
+
+  {/* Actions */}
+  <div className="flex items-center gap-2">
+
+    {/* Edit / Save Toggle */}
+    {!isEditing ? (
+      <button
+        onClick={() => setIsEditing(true)}
+        className="bg-blue-500 hover:bg-blue-600 text-white 
+                   px-3 py-1.5 rounded text-sm transition"
+      >
+        Edit
+      </button>
+    ) : (
+      <>
+        <button
+          onClick={handleSaveTask}
+          className="bg-green-500 hover:bg-green-600 text-white 
+                     px-3 py-1.5 rounded text-sm transition"
+        >
+          Save
+        </button>
+
+        <button
+          onClick={() => {
+            setIsEditing(false);
+            setEditTitle(task.title); // reset changes (important UX fix)
+          }}
+          className="bg-gray-400 hover:bg-gray-500 text-white 
+                     px-3 py-1.5 rounded text-sm transition"
+        >
+          Cancel
+        </button>
+      </>
+    )}
+
+    {/* Close Modal Button (Professional Style) */}
+    <button
+      onClick={onClose}
+      className="w-9 h-9 flex items-center justify-center 
+                 rounded-full text-gray-500 
+                 hover:text-black hover:bg-gray-100 
+                 transition duration-200 ml-2"
+      aria-label="Close modal"
+    >
+      ✕
+    </button>
+
+  </div>
+</div>
+
 
         {/* Task Info */}
         <p className="mb-2">
@@ -45,8 +189,22 @@ const TaskDetailsModal = ({ task, onClose }) => {
         </p>
 
         <p className="mb-2">
-          <span className="font-semibold">Priority:</span> {task.priority}
-        </p>
+  <span className="font-semibold">Priority:</span>{" "}
+
+  {isEditing ? (
+    <select
+      value={editPriority}
+      onChange={(e) => setEditPriority(e.target.value)}
+      className="border rounded p-1 ml-2"
+    >
+      <option value="LOW">LOW</option>
+      <option value="MEDIUM">MEDIUM</option>
+      <option value="HIGH">HIGH</option>
+    </select>
+  ) : (
+    task.priority
+  )}
+</p>
 
         <hr className="my-4" />
 
@@ -54,41 +212,106 @@ const TaskDetailsModal = ({ task, onClose }) => {
         <h3 className="font-semibold mb-2">Comments</h3>
 
         <div className="space-y-2 max-h-40 overflow-y-auto mb-3">
-          {comments.length === 0 ? (
-            <p className="text-gray-400 text-sm">No comments yet</p>
-          ) : (
-            comments.map((c) => (
-              <div
-                key={c.id}
-                className="text-sm bg-gray-100 p-2 rounded"
-              >
-                <span className="font-semibold">{c.user}: </span>
-                {c.text}
-              </div>
-            ))
-          )}
+        {comments.length === 0 ? (
+  <p className="text-gray-400 text-sm">No comments yet</p>
+) : (
+  comments.map((c) => (
+    <div
+      key={c.id}
+      className="border-l-4 border-blue-500 pl-3 py-2 bg-gray-50 rounded"
+    >
+      <div className="flex justify-between items-start">
+        <div>
+          <p className="font-semibold text-sm">
+            {c.user?.name || "User"} commented
+          </p>
+
+          <p className="text-sm text-gray-700 mt-1">
+            {c.content || c.text}
+          </p>
+
+          <p className="text-xs text-gray-500 mt-1">
+            {c.createdAt
+              ? new Date(c.createdAt).toLocaleString()
+              : "Just now"}
+          </p>
+        </div>
+
+        <button
+          onClick={() => handleDeleteComment(c.id)}
+          className="text-red-500 text-xs"
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  ))
+)}
         </div>
 
         {/* Add Comment */}
         <div className="flex gap-2">
-          <input
-            value={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
-            placeholder="Write a comment..."
-            className="flex-1 border rounded p-2 text-sm"
-          />
+  <input
+    value={commentText}
+    onChange={(e) => setCommentText(e.target.value)}
+    placeholder="Write a comment..."
+    className="flex-1 border rounded p-2 text-sm"
+  />
 
-          <button
-            onClick={handleAddComment}
-            className="bg-blue-500 text-white px-3 py-1 rounded text-sm"
-          >
-            Add
-          </button>
-        </div>
+  <button
+    onClick={handleAddComment}
+    className="bg-blue-500 text-white px-3 py-1 rounded text-sm"
+  >
+    Add
+  </button>
+</div>
 
-      </div>
+<hr className="my-4" />
+
+<h3 className="font-semibold mb-2">Attachments</h3>
+
+<div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+  <p className="text-gray-500 mb-2">
+    Drag & Drop files here
+  </p>
+
+  <input
+    type="file"
+    multiple
+    onChange={(e) =>
+      setAttachments([
+        ...attachments,
+        ...Array.from(e.target.files),
+      ])
+    }
+  />
+</div>
+
+<div className="mt-3 space-y-2">
+  {attachments.map((file, index) => (
+    <div
+      key={index}
+      className="flex justify-between items-center bg-gray-100 p-2 rounded"
+    >
+      <span className="text-sm">{file.name}</span>
+
+      <button
+        onClick={() =>
+          setAttachments(
+            attachments.filter((_, i) => i !== index)
+          )
+        }
+        className="text-red-500 text-sm"
+      >
+        Remove
+      </button>
     </div>
-  );
+  ))}
+</div>
+
+</div>
+</div>
+);
 };
 
 export default TaskDetailsModal;
