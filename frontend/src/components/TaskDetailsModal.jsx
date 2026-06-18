@@ -13,7 +13,7 @@ const [attachments, setAttachments] = useState([]);
 const [uploading, setUploading] = useState(false);
 const [uploadProgress, setUploadProgress] = useState(0);
 
-  if (!task) return null;
+  
 
   // ✅ FETCH COMMENTS FROM BACKEND
   const fetchComments = async () => {
@@ -126,6 +126,7 @@ setComments(comments.filter((c) => c.id !== commentId));
       });
     }, 100);
   };
+  if (!task) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
