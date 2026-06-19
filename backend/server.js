@@ -8,8 +8,9 @@ require('dotenv').config();           // Loads your .env file
 const taskRoutes = require('./routes/taskRoutes');
 const commentRoutes = require('./routes/commentRoutes');
 const express = require('express');   // The web server framework
-const cors = require('cors');         // Allows frontend to talk to backend
-
+const cors = require('cors');
+const helmet = require('helmet');         // Allows frontend to talk to backend
+const { sanitizeInput } = require("./middleware/securityMiddleware");
 // Swagger API Documentation
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
@@ -26,6 +27,7 @@ const projectRoutes = require('./routes/projectRoutes');
 
 // Create the Express app — think of this as "turning on the restaurant"
 const app = express();
+app.use(helmet());
 
 // ==============================
 // MIDDLEWARE (things that run on EVERY request)
@@ -40,7 +42,9 @@ app.use(cors({
 // This tells Express to understand JSON data sent from the frontend
 // Without this, req.body would be empty when frontend sends data
 app.use(express.json());
+
 app.use('/uploads', express.static('uploads'));
+app.use(sanitizeInput);
 
 // ==============================
 // ROUTES (the URLs your server listens to)
