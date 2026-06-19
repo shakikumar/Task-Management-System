@@ -132,6 +132,8 @@ const deleteAttachment = async (req, res) => {
       });
     }
 
+  
+
     // ---- STEP 2: Check permission ----
     // Only the uploader, Admin, or Project Manager can delete
     const isOwner = attachment.userId === req.user.id;
