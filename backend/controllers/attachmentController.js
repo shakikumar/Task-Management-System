@@ -6,6 +6,7 @@
 const prisma = require('../config/prisma');
 const fs = require('fs');
 const path = require('path');
+const { getIO } = require('../sockets/socketServer');
 
 // ==============================
 // CREATE ATTACHMENT
@@ -58,12 +59,17 @@ const createAttachment = async (req, res) => {
       }
     });
 
-    await prisma.notification.create({
-      data: {
-        userId: task.assignedUserId,
-        message: `${req.user.name} uploaded an attachment to task: ${task.title}`
-      }
-    });
+    const notification = await prisma.notification.create({
+  data: {
+    userId: task.assignedUserId,
+    message: `${req.user.name} uploaded an attachment to task: ${task.title}`
+  }
+});
+
+getIO().to(task.assignedUserId).emit(
+  "newNotification",
+  notification
+);
 
     return res.status(201).json({
       success: true,

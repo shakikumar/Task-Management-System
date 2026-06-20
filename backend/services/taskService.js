@@ -54,13 +54,19 @@ const createTask = async (data) => {
       }
     }
   });
+const { getIO } = require('../sockets/socketServer');
+  const notification = await prisma.notification.create({
+  data: {
+    userId: assignedUserId,
+    message: `You have been assigned task: ${task.title}`
+  }
+});
 
-  await prisma.notification.create({
-    data: {
-      message: `You have been assigned task: ${newTask.title}`,
-      userId: assignedUserId
-    }
-  });
+getIO().to(assignedUserId).emit(
+  "newNotification",
+  notification
+);
+
 
   return newTask;
 };

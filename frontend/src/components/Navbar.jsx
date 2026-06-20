@@ -1,10 +1,17 @@
-
+import { useState, useEffect } from "react";
+import {
+  getNotifications,
+  markAsRead,
+  markAllAsRead
+} from "../services/notificationService";
+import { io } from "socket.io-client";
 
 /* -------------------------------------------------------------------------- */
 /*  Icon components — inline SVGs to avoid extra dependencies                 */
 /* -------------------------------------------------------------------------- */
 
 function MenuIcon() {
+
   return (
     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
@@ -31,16 +38,22 @@ function BellIcon() {
 /*  NotificationButton — bell icon with unread indicator                      */
 /* -------------------------------------------------------------------------- */
 
-function NotificationButton({ hasUnread = true }) {
+function NotificationButton({
+  unreadCount = 0,
+  onClick
+}) {
   return (
     <button
       type="button"
+      onClick={onClick}
       aria-label="Notifications"
       className="relative flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
     >
       <BellIcon />
-      {hasUnread && (
-        <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-indigo-500 ring-2 ring-white" />
+      {unreadCount > 0 && (
+        <span className="absolute -top-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+          {unreadCount}
+        </span>
       )}
     </button>
   );
@@ -75,8 +88,51 @@ function Navbar({
   user = { name: "Alex Morgan", initials: "AM" },
   hasUnreadNotifications = true,
 }) {
-  
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showNotifications, setShowNotifications] = useState(false);
 
+ useEffect(() => {
+  loadNotifications();
+
+  const socket = io("http://localhost:5001");
+
+  const currentUser = JSON.parse(
+    localStorage.getItem("user")
+  );
+
+  if (currentUser?.id) {
+    socket.emit("join", currentUser.id);
+  }
+
+  socket.on("newNotification", (notification) => {
+    setNotifications((prev) => [
+      notification,
+      ...prev
+    ]);
+
+    setUnreadCount((prev) => prev + 1);
+  });
+
+  return () => {
+    socket.disconnect();
+  };
+}, []);
+  const loadNotifications = async () => {
+    try {
+      const res = await getNotifications();
+
+      const data = res.data.notifications || [];
+
+      setNotifications(data);
+
+      setUnreadCount(
+        data.filter((n) => !n.isRead).length
+      );
+    } catch (error) {
+      console.error("Failed to load notifications", error);
+    }
+  };
   return (
     <header className="sticky top-0 z-30 h-16 shrink-0 border-b border-slate-200/80 bg-white/95 backdrop-blur-sm">
       <div className="flex h-full items-center gap-4 px-4 sm:px-6">
@@ -101,7 +157,55 @@ function Navbar({
 
         {/* Right — notifications and user profile */}
         <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
-          <NotificationButton hasUnread={hasUnreadNotifications} />
+          <NotificationButton
+            unreadCount={unreadCount}
+            onClick={() => setShowNotifications(!showNotifications)}
+          />
+          {showNotifications && (
+            <div className="absolute right-16 top-14 w-80 rounded-lg border bg-white shadow-lg z-50">
+              
+              <div className="flex items-center justify-between border-b px-4 py-3">
+                <span className="font-semibold">Notifications</span>
+
+                <button
+                  onClick={async () => {
+                    await markAllAsRead();
+                    await loadNotifications();
+                  }}
+                  className="text-xs text-blue-600 hover:underline"
+                >
+                  Mark All Read
+                </button>
+              </div>
+
+              <div className="max-h-80 overflow-y-auto">
+
+                {notifications.length === 0 ? (
+                  <div className="px-4 py-3 text-sm text-gray-500">
+                    No notifications
+                  </div>
+                ) : (
+                  notifications.map((notification) => (
+                    <div
+                      key={notification.id}
+                      className={`border-b px-4 py-3 text-sm cursor-pointer ${!notification.isRead
+                        ? "bg-blue-50"
+                        : "bg-white text-gray-500"
+                        }`}
+                      onClick={async () => {
+                        if (!notification.isRead) {
+                          await markAsRead(notification.id);
+                          loadNotifications();
+                        }
+                      }}
+                    >
+                      {notification.message}
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
           <div className="mx-1 hidden h-6 w-px bg-slate-200 sm:block" aria-hidden="true" />
           <UserAvatar name={user.name} initials={user.initials} />
         </div>

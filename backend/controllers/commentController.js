@@ -28,7 +28,7 @@ const createComment = async (req, res) => {
         message: 'Comment content is required'
       });
     }
-
+const { getIO } = require("../sockets/socketServer");
     const comment = await prisma.comment.create({
       data: {
         content: content.trim(),
@@ -45,12 +45,17 @@ const createComment = async (req, res) => {
         }
       }
     });
-    await prisma.notification.create({
-      data: {
-        userId: task.assignedUserId,
-        message: `${req.user.name} commented on task: ${task.title}`
-      }
-    });
+    const notification = await prisma.notification.create({
+  data: {
+    userId: task.assignedUserId,
+    message: `${req.user.name} commented on task: ${task.title}`
+  }
+});
+
+getIO().to(task.assignedUserId).emit(
+  "newNotification",
+  notification
+);
 
     res.status(201).json({
       success: true,
