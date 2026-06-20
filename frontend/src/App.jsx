@@ -12,7 +12,21 @@ import Settings from "./pages/Settings";
 import ProfileSettings from "./pages/ProfileSettings";
 import ChangePassword from "./pages/ChangePassword";
 
+import { useEffect } from "react";
+import socket from "./services/socket";
+
+
+
 function App() {
+  useEffect(() => {
+  socket.on("connect", () => {
+    console.log("✅ Connected:", socket.id);
+  });
+
+  return () => {
+    socket.off("connect");
+  };
+}, []);
   return (
     <Routes>
       {/* Default */}

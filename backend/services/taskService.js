@@ -55,6 +55,13 @@ const createTask = async (data) => {
     }
   });
 
+  await prisma.notification.create({
+    data: {
+      message: `You have been assigned task: ${newTask.title}`,
+      userId: assignedUserId
+    }
+  });
+
   return newTask;
 };
 
@@ -92,19 +99,19 @@ const getAllTasks = async (filters, user) => {
     where.assignedUserId = filters.assignedUserId;
   }
   if (user.role === "PROJECT_MANAGER") {
-  const myProjects = await prisma.project.findMany({
-    where: {
-      createdById: user.id
-    },
-    select: {
-      id: true
-    }
-  });
+    const myProjects = await prisma.project.findMany({
+      where: {
+        createdById: user.id
+      },
+      select: {
+        id: true
+      }
+    });
 
-  where.projectId = {
-    in: myProjects.map(project => project.id)
-  };
-}
+    where.projectId = {
+      in: myProjects.map(project => project.id)
+    };
+  }
 
   // ---- FILTER 5: Search by title (NEW!) ----
   // Example: ?search=login
@@ -307,6 +314,14 @@ const updateTask = async (id, updateData, user) => {
       }
     }
   });
+  if (updateData.status) {
+  await prisma.notification.create({
+    data: {
+      userId: updatedTask.assignedUserId,
+      message: `Task status changed to ${updatedTask.status}`
+    }
+  });
+}
 
   return updatedTask;
 };

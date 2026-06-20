@@ -58,6 +58,13 @@ const createAttachment = async (req, res) => {
       }
     });
 
+    await prisma.notification.create({
+      data: {
+        userId: task.assignedUserId,
+        message: `${req.user.name} uploaded an attachment to task: ${task.title}`
+      }
+    });
+
     return res.status(201).json({
       success: true,
       message: 'File uploaded successfully',
@@ -132,7 +139,7 @@ const deleteAttachment = async (req, res) => {
       });
     }
 
-  
+
 
     // ---- STEP 2: Check permission ----
     // Only the uploader, Admin, or Project Manager can delete

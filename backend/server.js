@@ -9,11 +9,16 @@ const taskRoutes = require('./routes/taskRoutes');
 const commentRoutes = require('./routes/commentRoutes');
 const express = require('express');   // The web server framework
 const cors = require('cors');
+const http = require('http');
 const helmet = require('helmet');         // Allows frontend to talk to backend
+const { initializeSocket } = require('./sockets/socketServer');
 const { sanitizeInput } = require("./middleware/securityMiddleware");
 // Swagger API Documentation
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
+// notification
+const notificationRoutes = require('./routes/notificationRoutes');
+
 
 
 // ── PHASE 1 ROUTE ────────────────────────────────────────────────────────────
@@ -27,6 +32,8 @@ const projectRoutes = require('./routes/projectRoutes');
 
 // Create the Express app — think of this as "turning on the restaurant"
 const app = express();
+const server = http.createServer(app);
+
 app.use(helmet());
 
 // ==============================
@@ -76,10 +83,17 @@ app.use('/api/projects', projectRoutes);
 // Phase 3(NEW)
 app.use('/api/tasks', taskRoutes);
 app.use('/api/comments', commentRoutes);
+// phase 5 (notification)
+app.use('/api/notifications', notificationRoutes);
 // A simple test route — visit http://localhost:5001/ to check if server is running
 app.get('/', (req, res) => {
   res.json({ message: '✅ TMS Backend Server is running!' });
+
 });
+
+initializeSocket(server);
+
+
 
 // ==============================
 // START THE SERVER
@@ -87,6 +101,6 @@ app.get('/', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`✅ Server is running on http://localhost:${PORT}`);
 });

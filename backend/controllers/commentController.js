@@ -6,6 +6,17 @@ const createComment = async (req, res) => {
     const { taskId } = req.params;
     const { content } = req.body;
 
+    const task = await prisma.task.findUnique({
+      where: { id: taskId }
+    });
+
+    if (!task) {
+      return res.status(404).json({
+        success: false,
+        message: "Task not found"
+      });
+    }
+
     // Detect mentions like @john
     const mentions = content.match(/@(\w+)/g) || [];
 
@@ -32,6 +43,12 @@ const createComment = async (req, res) => {
             role: true
           }
         }
+      }
+    });
+    await prisma.notification.create({
+      data: {
+        userId: task.assignedUserId,
+        message: `${req.user.name} commented on task: ${task.title}`
       }
     });
 
