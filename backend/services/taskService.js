@@ -1,5 +1,8 @@
 const prisma = require('../config/prisma');
 const { getIO } = require('../sockets/socketServer');
+const {
+  sendTaskAssignmentEmail
+} = require("./mailerService");
 
 class AppError extends Error {
   constructor(message, statusCode) {
@@ -68,6 +71,15 @@ const createTask = async (data) => {
     notification
   );
 
+  try {
+  await sendTaskAssignmentEmail(
+    newTask.assignedUser.email,
+    newTask.title,
+    newTask.project.name
+  );
+} catch (err) {
+  console.log("Task assignment email failed:", err);
+}
 
   return newTask;
 };
@@ -406,7 +418,15 @@ const assignTask = async (id, assignedUserId) => {
     "newNotification",
     notification
   );
-
+  try {
+  await sendTaskAssignmentEmail(
+    newTask.assignedUser.email,
+    newTask.title,
+    newTask.project.name
+  );
+} catch (err) {
+  console.log("Task assignment email failed:", err);
+}
   return updatedTask;
 };
 

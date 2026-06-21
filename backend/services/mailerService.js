@@ -11,6 +11,30 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+const sendTaskAssignmentEmail = async (
+  userEmail,
+  taskTitle,
+  projectName
+) => {
+
+  const mailOptions = {
+    from: `"Task Management System" <${process.env.SMTP_USER}>`,
+    to: userEmail,
+    subject: "New Task Assigned",
+    html: `
+      <h2>New Task Assigned</h2>
+
+      <p>You have been assigned a new task.</p>
+
+      <p>
+        <b>Task:</b> ${taskTitle}<br/>
+        <b>Project:</b> ${projectName}
+      </p>
+    `
+  };
+
+  await transporter.sendMail(mailOptions);
+};
 /**
  * Asynchronous service to dispatch temporary credentials to a newly onboarded user.
  */
@@ -47,4 +71,7 @@ const sendOnboardingEmail = async (userEmail, temporaryPassword) => {
   }
 };
 
-module.exports = { sendOnboardingEmail };
+module.exports = {
+  sendOnboardingEmail,
+  sendTaskAssignmentEmail
+};
