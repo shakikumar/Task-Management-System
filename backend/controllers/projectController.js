@@ -6,6 +6,9 @@
 // ==============================
 
 const prisma = require('../config/prisma');
+const {
+  sendProjectAssignmentEmail
+} = require("../services/mailerService");
 
 // ── CREATE PROJECT ───────────────────────────────────────────────────────────
 // POST /api/projects
@@ -45,6 +48,26 @@ const createProject = async (req, res) => {
         }
       }
     });
+
+    if (ownerId && ownerId !== req.user.id) {
+
+  const projectManager =
+    await prisma.user.findUnique({
+      where: { id: ownerId }
+    });
+
+  if (projectManager?.email) {
+
+    await sendProjectAssignmentEmail(
+      projectManager.email,
+      newProject.name
+    );
+
+    console.log(
+      `Project Assignment Email sent to ${projectManager.email}`
+    );
+  }
+}
 
     return res.status(201).json({
       success: true,

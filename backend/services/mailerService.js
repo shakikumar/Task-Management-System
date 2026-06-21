@@ -35,6 +35,28 @@ const sendTaskAssignmentEmail = async (
 
   await transporter.sendMail(mailOptions);
 };
+const sendProjectAssignmentEmail = async (
+  userEmail,
+  projectName
+) => {
+
+  const mailOptions = {
+    from: `"Task Management System" <${process.env.SMTP_USER}>`,
+    to: userEmail,
+    subject: "New Project Assigned",
+    html: `
+      <h2>New Project Assigned</h2>
+
+      <p>You have been assigned as Project Manager.</p>
+
+      <p>
+        <b>Project:</b> ${projectName}
+      </p>
+    `
+  };
+
+  await transporter.sendMail(mailOptions);
+};
 /**
  * Asynchronous service to dispatch temporary credentials to a newly onboarded user.
  */
@@ -73,5 +95,6 @@ const sendOnboardingEmail = async (userEmail, temporaryPassword) => {
 
 module.exports = {
   sendOnboardingEmail,
-  sendTaskAssignmentEmail
+  sendTaskAssignmentEmail,
+  sendProjectAssignmentEmail
 };
