@@ -15,6 +15,8 @@ const transporter = nodemailer.createTransport({
  * Asynchronous service to dispatch temporary credentials to a newly onboarded user.
  */
 const sendOnboardingEmail = async (userEmail, temporaryPassword) => {
+  console.log("MAILER CALLED");
+  console.log("SMTP_USER:", process.env.SMTP_USER);
   const mailOptions = {
     from: `"Task Management System" <${process.env.SMTP_USER}>`,
     to: userEmail,

@@ -7,6 +7,7 @@
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const prisma = require('../config/prisma');
+const { sendOnboardingEmail } = require('../services/mailerService');
 
 // ── CREATE USER ─────────────────────────────────────────────────────────────
 // POST /api/users
@@ -83,6 +84,23 @@ const createUser = async (req, res) => {
       "Temporary Password:",
       temporaryPassword
     );
+
+    try {
+  await sendOnboardingEmail(
+    newUser.email,
+    temporaryPassword
+  );
+
+  console.log(
+    `Email sent to ${newUser.email}`
+  );
+
+} catch (mailError) {
+  console.log(
+    "Email send failed:",
+    mailError
+  );
+}
 
     return res.status(201).json({
       success: true,
