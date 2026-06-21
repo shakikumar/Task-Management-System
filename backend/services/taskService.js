@@ -1,4 +1,5 @@
 const prisma = require('../config/prisma');
+const { getIO } = require('../sockets/socketServer');
 
 class AppError extends Error {
   constructor(message, statusCode) {
@@ -54,18 +55,18 @@ const createTask = async (data) => {
       }
     }
   });
-const { getIO } = require('../sockets/socketServer');
-  const notification = await prisma.notification.create({
-  data: {
-    userId: assignedUserId,
-    message: `You have been assigned task: ${task.title}`
-  }
-});
 
-getIO().to(assignedUserId).emit(
-  "newNotification",
-  notification
-);
+  const notification = await prisma.notification.create({
+    data: {
+      userId: assignedUserId,
+      message: `You have been assigned task: ${newTask.title}`
+    }
+  });
+
+  getIO().to(assignedUserId).emit(
+    "newNotification",
+    notification
+  );
 
 
   return newTask;
@@ -321,13 +322,19 @@ const updateTask = async (id, updateData, user) => {
     }
   });
   if (updateData.status) {
-  await prisma.notification.create({
-    data: {
-      userId: updatedTask.assignedUserId,
-      message: `Task status changed to ${updatedTask.status}`
-    }
-  });
-}
+
+    const notification = await prisma.notification.create({
+      data: {
+        userId: updatedTask.assignedUserId,
+        message: `Task status changed to ${updatedTask.status}`
+      }
+    });
+
+    getIO().to(updatedTask.assignedUserId).emit(
+      "newNotification",
+      notification
+    );
+  }
 
   return updatedTask;
 };
@@ -387,6 +394,18 @@ const assignTask = async (id, assignedUserId) => {
       }
     }
   });
+
+  const notification = await prisma.notification.create({
+    data: {
+      userId: assignedUserId,
+      message: `You have been assigned task: ${updatedTask.title}`
+    }
+  });
+
+  getIO().to(assignedUserId).emit(
+    "newNotification",
+    notification
+  );
 
   return updatedTask;
 };
