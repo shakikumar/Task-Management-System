@@ -15,6 +15,9 @@ import ChangePassword from "./pages/ChangePassword";
 import { useEffect } from "react";
 import socket from "./services/socket";
 
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 
 
 function App() {
@@ -28,6 +31,12 @@ function App() {
   };
 }, []);
   return (
+    <>
+    <ToastContainer
+      position="top-right"
+      autoClose={3000}
+    />
+
     <Routes>
       {/* Default */}
       <Route path="/" element={<Navigate to="/login" replace />} />
@@ -52,6 +61,7 @@ function App() {
       {/* fallback */}
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
+    </>
   );
 }
 

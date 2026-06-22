@@ -5,6 +5,7 @@ import {
   markAllAsRead
 } from "../services/notificationService";
 import { io } from "socket.io-client";
+import { toast } from "react-toastify";
 
 /* -------------------------------------------------------------------------- */
 /*  Icon components — inline SVGs to avoid extra dependencies                 */
@@ -112,6 +113,7 @@ function Navbar({
     ]);
 
     setUnreadCount((prev) => prev + 1);
+    toast.info(notification.message);
   });
 
   return () => {
