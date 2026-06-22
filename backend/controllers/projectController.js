@@ -99,23 +99,58 @@ if (req.user.role === "PROJECT_MANAGER") {
   where: whereClause,
 
   include: {
-    createdBy: {
-      select: { id: true, name: true, email: true, role: true }
-    },
-    _count: {
-      select: { tasks: true }
-    }
+  createdBy: {
+    select: { id: true, name: true, email: true, role: true }
   },
+
+  tasks: {
+    select: {
+      id: true,
+      status: true,
+      assignedUserId: true
+    }
+  }
+},
 
   orderBy: {
     createdAt: 'desc'
   }
 });
+const projectsWithStats = projects.map(project => {
+
+  const totalTasks = project.tasks.length;
+
+  const completedTasks = project.tasks.filter(
+    task => task.status === "COMPLETED"
+  ).length;
+
+  const progress =
+    totalTasks === 0
+      ? 0
+      : Math.round(
+          (completedTasks / totalTasks) * 100
+        );
+
+  const membersCount =
+    new Set(
+      project.tasks.map(
+        task => task.assignedUserId
+      )
+    ).size;
+
+  return {
+    ...project,
+    totalTasks,
+    completedTasks,
+    progress,
+    membersCount
+  };
+});
 
     return res.status(200).json({
       success: true,
       count: projects.length,
-      projects: projects
+      projects: projectsWithStats
     });
 
   } catch (error) {
@@ -185,7 +220,9 @@ const getProjectById = async (req, res) => {
 const updateProject = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, description } = req.body;
+    const { name, description, status } = req.body;
+
+    
 
     // Check project exists
     const existingProject = await prisma.project.findUnique({
@@ -227,6 +264,9 @@ const updateProject = async (req, res) => {
     const updateData = {};
     if (name !== undefined) updateData.name = name.trim();
     if (description !== undefined) updateData.description = description?.trim();
+
+    if (status !== undefined)
+  updateData.status = status;
 
     const updatedProject = await prisma.project.update({
       where: { id: id },

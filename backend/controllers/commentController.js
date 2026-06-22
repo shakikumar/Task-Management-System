@@ -2,6 +2,13 @@ const prisma = require('../config/prisma');
 
 // Create Comment
 const createComment = async (req, res) => {
+
+  if (req.user.role === "ADMINISTRATOR") {
+  return res.status(403).json({
+    success: false,
+    message: "Administrators cannot comment on tasks"
+  });
+}
   try {
     const { taskId } = req.params;
     const { content } = req.body;
@@ -131,15 +138,13 @@ const deleteComment = async (req, res) => {
 
     // Owner OR Admin OR Project Manager
     const isOwner = comment.userId === req.user.id;
-    const isAdmin = req.user.role === 'ADMINISTRATOR';
-    const isManager = req.user.role === 'PROJECT_MANAGER';
-
-    if (!isOwner && !isAdmin && !isManager) {
-      return res.status(403).json({
-        success: false,
-        message: 'You do not have permission to delete this comment'
-      });
-    }
+    
+if (!isOwner) {
+  return res.status(403).json({
+    success: false,
+    message: 'You can only delete your own comments'
+  });
+}
 
     await prisma.comment.delete({
       where: {

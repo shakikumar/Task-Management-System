@@ -420,10 +420,10 @@ const assignTask = async (id, assignedUserId) => {
   );
   try {
   await sendTaskAssignmentEmail(
-    newTask.assignedUser.email,
-    newTask.title,
-    newTask.project.name
-  );
+  updatedTask.assignedUser.email,
+  updatedTask.title,
+  updatedTask.project.name
+);
 } catch (err) {
   console.log("Task assignment email failed:", err);
 }

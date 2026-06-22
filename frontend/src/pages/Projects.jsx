@@ -1,4 +1,4 @@
-import  { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import axios from 'axios'; // Ensure axios is imported
 
 /* -------------------------------------------------------------------------- */
@@ -115,6 +115,45 @@ function Projects() {
       alert(error.response?.data?.message || "Failed to create project.");
     }
   }
+const handleStatusChange = async (
+  projectId,
+  newStatus
+) => {
+  try {
+    const token =
+      localStorage.getItem("token");
+
+    await axios.put(
+      `http://localhost:5001/api/projects/${projectId}`,
+      {
+        status: newStatus
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+
+    setProjects(prev =>
+      prev.map(project =>
+        project.id === projectId
+          ? {
+              ...project,
+              status: newStatus
+            }
+          : project
+      )
+    );
+
+  } catch (error) {
+    console.log(error);
+    alert("Failed to update status");
+  }
+};
+   
+   
+  
   // REPLACE YOUR OLD handleDeleteProject FUNCTION WITH THIS ONE:
   async function handleDeleteProject(id) {
     const confirmDelete = window.confirm(
@@ -223,27 +262,108 @@ function Projects() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 
         {filteredProjects.map(project => (
-          <div key={project.id} className="border rounded-lg p-4 bg-white">
-            <h2 className="font-semibold text-lg">{project.name}</h2>
-            <p className="text-sm text-gray-500">{project.description}</p>
+          <div
+  key={project.id}
+  className="border rounded-lg p-4 bg-white h-[280px] flex flex-col justify-between"
+>
+            <div className="flex justify-between items-start">
+  <div>
+    <h2 className="font-semibold text-lg">
+      {project.name}
+    </h2>
 
-            <div className="mt-3 text-sm">
-              <p>Owner: {project.createdBy?.name || "Project Manager"}</p>
-              <p>Members: {project.members || 0}</p>
-            </div>
+    <p className="text-sm text-gray-500">
+      {project.description}
+    </p>
+  </div>
 
-            <div className="mt-3 flex items-center justify-between">
-              <span className="text-xs px-2 py-1 bg-gray-100 rounded">
-                {project.status}
-              </span>
+  <select
+  value={project.status}
+  onChange={(e) =>
+    handleStatusChange(
+      project.id,
+      e.target.value
+    )
+  }
+  className={`
+    text-xs font-medium rounded px-2 py-1 border-0 outline-none cursor-pointer
 
-              <button
-                onClick={() => handleDeleteProject(project.id)}
-                className="text-xs text-red-600 hover:text-red-800"
-              >
-                Delete
-              </button>
-            </div>
+    ${project.status === "PLANNING"
+      ? "bg-yellow-100 text-yellow-700"
+      : project.status === "IN_PROGRESS"
+      ? "bg-blue-100 text-blue-700"
+      : project.status === "ACTIVE"
+      ? "bg-green-100 text-green-700"
+      : "bg-emerald-100 text-emerald-700"
+    }
+  `}
+>
+  <option value="PLANNING">
+    Planning
+  </option>
+
+  <option value="IN_PROGRESS">
+    In Progress
+  </option>
+
+  <option value="ACTIVE">
+    Active
+  </option>
+
+  <option value="COMPLETED">
+    Completed
+  </option>
+</select>
+</div>
+<div className="mt-4 space-y-2 text-sm">
+
+  <p>
+    <span className="font-semibold">Owner:</span> {project.createdBy?.name}
+  </p>
+
+  <div className="grid grid-cols-2 gap-y-1 text-gray-700">
+    <p>Tasks: {project.totalTasks}</p>
+   <p>
+    Members: {project.membersCount}
+  </p>
+
+    <p>Completed: {project.completedTasks}</p>
+  </div>
+
+  <div className="mt-3">
+    <div className="flex justify-between text-xs mb-1">
+      <span>Progress</span>
+      <span>{project.progress}%</span>
+    </div>
+
+    <div className="w-full bg-gray-200 rounded-full h-2">
+      <div
+        className="bg-green-500 h-2 rounded-full"
+        style={{ width: `${project.progress}%` }}
+      />
+    </div>
+  </div>
+
+</div>
+<div className="mt-4 flex justify-between border-t pt-3">
+
+  
+
+  <button
+    className="text-purple-600 text-sm"
+  >
+    💬 Comments
+  </button>
+
+  <button
+    onClick={() => handleDeleteProject(project.id)}
+    className="text-red-600 text-sm"
+  >
+    🗑 Delete
+  </button>
+
+</div>
+            
           </div>
         ))}
 

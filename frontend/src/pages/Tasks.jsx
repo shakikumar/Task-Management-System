@@ -371,16 +371,44 @@ function Tasks() {
   className="bg-white p-3 mb-3 rounded-lg shadow-sm border hover:shadow-md transition cursor-pointer"
 >
                   <div className="flex items-center justify-between">
-                    <h3 className="font-medium">{task.title}</h3>
 
-                    <span
-                      className={`text-xs px-2 py-1 rounded-full ${getStatusBadge(
-                        task.status
-                      )}`}
-                    >
-                      {task.status}
-                    </span>
-                  </div>
+  <h3 className="font-medium">
+    {task.title}
+  </h3>
+
+  <select
+    value={task.status}
+    onChange={(e) =>
+      updateTaskStatus(
+        task.id,
+        e.target.value
+      )
+    }
+    className={`
+      text-xs px-2 py-1 rounded-full font-medium border-0
+
+      ${task.status === "TODO"
+        ? "bg-gray-200 text-gray-700"
+        : task.status === "IN_PROGRESS"
+        ? "bg-blue-200 text-blue-700"
+        : "bg-green-200 text-green-700"
+      }
+    `}
+  >
+    <option value="TODO">
+      To Do
+    </option>
+
+    <option value="IN_PROGRESS">
+      In Progress
+    </option>
+
+    <option value="COMPLETED">
+      Completed
+    </option>
+  </select>
+
+</div>
 
                   <p className="text-xs text-gray-500 mt-2">
                     👤 {task.assignedUser?.name}
@@ -405,38 +433,9 @@ function Tasks() {
 >
   💬 Comments
 </button>
-                    {task.status !== "To Do" && (
-                      <button
-                        onClick={() =>
-                          updateTaskStatus(task.id, "TODO")
-                        }
-                        className="text-xs px-2 py-1 bg-gray-200 rounded"
-                      >
-                        To Do
-                      </button>
-                    )}
+                    
 
-                    {task.status !== "In Progress" && (
-                      <button
-                        onClick={() =>
-                          updateTaskStatus(task.id, "IN_PROGRESS")
-                        }
-                        className="text-xs px-2 py-1 bg-blue-200 rounded"
-                      >
-                        In Progress
-                      </button>
-                    )}
-
-                    {task.status !== "Completed" && (
-                      <button
-                        onClick={() =>
-                          updateTaskStatus(task.id, "COMPLETED")
-                        }
-                        className="text-xs px-2 py-1 bg-green-200 rounded"
-                      >
-                        Done
-                      </button>
-                    )}
+  
                     {!isCollaborator && (
                       <button
                         onClick={() => deleteTask(task.id)}

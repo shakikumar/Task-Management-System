@@ -13,6 +13,10 @@ const TaskDetailsModal = ({ task, onClose }) => {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
+  const currentUser = JSON.parse(
+  localStorage.getItem("user")
+);
+
 
 
   // ✅ FETCH COMMENTS FROM BACKEND
@@ -325,12 +329,14 @@ const TaskDetailsModal = ({ task, onClose }) => {
                     </p>
                   </div>
 
-                  <button
-                    onClick={() => handleDeleteComment(c.id)}
-                    className="text-red-500 text-xs"
-                  >
-                    Delete
-                  </button>
+                  {c.user?.id === currentUser?.id && (
+                    <button
+                      onClick={() => handleDeleteComment(c.id)}
+                      className="text-red-500 text-xs"
+                    >
+                      Delete
+                    </button>
+                  )}
                 </div>
               </div>
             ))
@@ -338,21 +344,23 @@ const TaskDetailsModal = ({ task, onClose }) => {
         </div>
 
         {/* Add Comment */}
-        <div className="flex gap-2">
-          <input
-            value={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
-            placeholder="Write a comment..."
-            className="flex-1 border rounded p-2 text-sm"
-          />
+        {currentUser?.role !== "ADMINISTRATOR" && (
+          <div className="flex gap-2">
+            <input
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              placeholder="Write a comment..."
+              className="flex-1 border rounded p-2 text-sm"
+            />
 
-          <button
-            onClick={handleAddComment}
-            className="bg-blue-500 text-white px-3 py-1 rounded text-sm"
-          >
-            Add
-          </button>
-        </div>
+            <button
+              onClick={handleAddComment}
+              className="bg-blue-500 text-white px-3 py-1 rounded text-sm"
+            >
+              Add
+            </button>
+          </div>
+        )}
 
         <hr className="my-4" />
 
