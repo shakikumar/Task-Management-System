@@ -35,14 +35,22 @@ const storage = multer.diskStorage({
 // ---- STEP 2: Only allow specific file types ----
 const fileFilter = (req, file, cb) => {
 
-  // List of MIME types we allow
-  const allowedTypes = ['application/pdf', 'image/png', 'image/jpeg'];
+  // Check by MIME type
+  const allowedTypes = [
+    'application/pdf',
+    'image/png', 
+    'image/jpeg',
+    'application/octet-stream' // Windows sometimes sends this for PDFs
+  ];
 
-  if (allowedTypes.includes(file.mimetype)) {
-    // File type is safe — allow it
+  // Check by file extension as backup
+  const allowedExtensions = ['.pdf', '.png', '.jpg', '.jpeg'];
+  const fileExtension = path.extname(file.originalname).toLowerCase();
+
+  if (allowedTypes.includes(file.mimetype) || 
+      allowedExtensions.includes(fileExtension)) {
     cb(null, true);
   } else {
-    // File type is NOT allowed — reject it
     cb(new Error('Invalid file type. Only PDF, PNG, and JPG files are allowed.'), false);
   }
 };
