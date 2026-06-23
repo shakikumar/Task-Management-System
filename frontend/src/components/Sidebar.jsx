@@ -268,25 +268,7 @@ function Sidebar({
 
         {/* Footer */}
         <div className="shrink-0 border-t border-white/[0.06] p-4">
-          <div
-            className={[
-              "flex items-center gap-3 rounded-lg bg-white/[0.03] px-3 py-2.5",
-              collapsed ? "lg:justify-center lg:gap-0 lg:px-0" : "",
-            ].join(" ")}
-            title={collapsed ? "Workspace — Free plan" : undefined}
-          >
-            <div
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-slate-600 to-slate-700 text-xs font-semibold text-white"
-              aria-hidden="true"
-            >
-              TF
-            </div>
-            <div className={["min-w-0 flex-1", collapsed ? "lg:hidden" : ""].join(" ")}>
-              <p className="truncate text-sm font-medium text-slate-200">Workspace</p>
-              <p className="truncate text-xs text-slate-500">Free plan</p>
-            </div>
-          </div>
-
+         
           <button
             type="button"
             onClick={handleLogout}

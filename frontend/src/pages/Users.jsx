@@ -1,5 +1,10 @@
 import { useMemo, useState, useEffect } from "react";
 import axios from "axios";
+import {
+  Users as UsersIcon,
+  Briefcase,
+  UserRound
+} from "lucide-react";
 
 /* -------------------------------------------------------------------------- */
 /*  Users Page (API-ready structure)                                          */
@@ -47,19 +52,7 @@ function RoleBadge({ role }) {
   );
 }
 
-function StatusBadge({ status }) {
-  const styles = {
-    Active: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
-    Inactive: "bg-slate-100 text-slate-600 ring-slate-500/20",
-    Invited: "bg-amber-50 text-amber-700 ring-amber-600/20",
-  };
 
-  return (
-    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${styles[status]}`}>
-      {status}
-    </span>
-  );
-}
 
 /* -------------------------------------------------------------------------- */
 /*  Stat Card                                                               */
@@ -69,9 +62,9 @@ function StatCard({ label, value, icon, bg, text }) {
   return (
     <article className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm hover:shadow-md transition">
       <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-lg ${bg}`}>
-        <svg className={`h-5 w-5 ${text}`} fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" d={icon} />
-        </svg>
+        <div className={text}>
+  {icon}
+</div>
       </div>
       <p className="text-sm font-medium text-slate-500">{label}</p>
       <p className="mt-1 text-2xl font-bold text-slate-900">{value}</p>
@@ -93,7 +86,7 @@ function Users() {
     email: "",
     role: "COLLABORATOR",
   });
-  
+
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -116,10 +109,10 @@ function Users() {
   };
 
   useEffect(() => {
-  fetchUsers();
-}, []);
+    fetchUsers();
+  }, []);
 
-  
+
 
   const filteredUsers = useMemo(() => {
     const q = search.toLowerCase().trim();
@@ -139,10 +132,6 @@ function Users() {
 
   const stats = useMemo(() => ({
     total: users.length,
-
-    active: users.filter(
-      u => u.isActive === true
-    ).length,
 
     managers: users.filter(
       u => u.role === "PROJECT_MANAGER"
@@ -233,19 +222,22 @@ function Users() {
       </header>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
-        <StatCard label="Total Users" value={stats.total} bg="bg-indigo-50" text="text-indigo-600"
-          icon="" />
-
-        <StatCard label="Active Users" value={stats.active} bg="bg-emerald-50" text="text-emerald-600"
-          icon="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0" />
-
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 mb-8">
+        
+          <StatCard
+  label="Total Users"
+  value={stats.total}
+  bg="bg-indigo-50"
+  text="text-indigo-600"
+  icon={<UsersIcon size={22} />}
+/>
+ 
         <StatCard label="Managers" value={stats.managers} bg="bg-violet-50" text="text-violet-600"
-          icon="M15 19.128a9.38 9.38 0 002.625.372A9.337 9.337 0 0021 12c0-4.97-4.03-9-9-9s-9 4.03-9 9a9.337 9.337 0 003.375 7.5"/>
+          icon={<Briefcase size={22} />} />
 
         <StatCard label="Collaborators" value={stats.collaborators} bg="bg-slate-100" text="text-slate-600"
-          icon="M18 18.72a9.094 9.094 0 003.742-.479A3 3 0 0018 15.75h-1.5"
- />
+          icon={<UserRound size={22} />}
+        />
       </div>
 
       {/* Filters */}
@@ -280,7 +272,6 @@ function Users() {
             <tr>
               <th className="p-3">User</th>
               <th>Role</th>
-              <th>Status</th>
               <th>Projects</th>
               <th>Last Active</th>
               <th className="p-3 text-right">Actions</th>
@@ -292,11 +283,6 @@ function Users() {
               <tr key={u.id} className="border-b hover:bg-slate-50">
                 <td className="p-3">{u.name}</td>
                 <td><RoleBadge role={u.role} /></td>
-                <td>
-                  <StatusBadge
-                    status={u.isActive ? "Active" : "Inactive"}
-                  />
-                </td>
                 <td>{u.assignedProjects}</td>
                 <td>
                   {u.lastActive

@@ -4,6 +4,7 @@
 // ==============================
 
 require('dotenv').config();           // Loads your .env file
+require("./jobs/dueDateChecker");       // due to date
 
 const taskRoutes = require('./routes/taskRoutes');
 const commentRoutes = require('./routes/commentRoutes');

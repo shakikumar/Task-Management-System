@@ -4,10 +4,11 @@ import TaskDetailsModal from "../components/TaskDetailsModal";
 
 
 
+
 function Tasks() {
   const [tasks, setTasks] = useState([]);
   const [selectedTask, setSelectedTask] = useState(null);
- 
+
 
   const [title, setTitle] = useState("");
   const [assignee, setAssignee] = useState("");
@@ -54,7 +55,7 @@ function Tasks() {
           setTasks(res.data.tasks);
         }
       } catch (error) {
-        
+
       }
     };
 
@@ -183,7 +184,7 @@ function Tasks() {
       }
 
     } catch (error) {
-      
+
     }
   };
 
@@ -207,7 +208,7 @@ function Tasks() {
       }
 
     } catch (error) {
-      
+
     }
   };
 
@@ -242,7 +243,7 @@ function Tasks() {
       <h1 className="text-2xl font-bold mb-6">Tasks Board</h1>
 
       {/* Add Task Form */}
-      {!isCollaborator && (
+      {currentUser?.role === "PROJECT_MANAGER" && (
         <div className="mb-6 bg-white p-4 rounded shadow-sm border">
           <h2 className="font-semibold mb-3">Add New Task</h2>
 
@@ -367,48 +368,61 @@ function Tasks() {
             ) : (
               getTasksByStatus(col).map((task) => (
                 <div
-  key={task.id}
-  className="bg-white p-3 mb-3 rounded-lg shadow-sm border hover:shadow-md transition cursor-pointer"
->
+                  key={task.id}
+                  className="bg-white p-3 mb-3 rounded-lg shadow-sm border hover:shadow-md transition cursor-pointer"
+                >
                   <div className="flex items-center justify-between">
 
-  <h3 className="font-medium">
-    {task.title}
-  </h3>
+                    <h3 className="font-medium">
+                      {task.title}
+                    </h3>
+                    {currentUser?.role === "ADMINISTRATOR" ? (
 
-  <select
-    value={task.status}
-    onChange={(e) =>
-      updateTaskStatus(
-        task.id,
-        e.target.value
-      )
-    }
-    className={`
+                      <span
+                        className={`
+      text-xs px-2 py-1 rounded-full font-medium
+
+      ${task.status === "TODO"
+                            ? "bg-gray-200 text-gray-700"
+                            : task.status === "IN_PROGRESS"
+                              ? "bg-blue-200 text-blue-700"
+                              : "bg-green-200 text-green-700"
+                          }
+    `}
+                      >
+                        {task.status}
+                      </span>
+
+                    ) : (
+
+                      <select
+                        value={task.status}
+                        onChange={(e) =>
+                          updateTaskStatus(
+                            task.id,
+                            e.target.value
+                          )
+                        }
+                        className={`
       text-xs px-2 py-1 rounded-full font-medium border-0
 
       ${task.status === "TODO"
-        ? "bg-gray-200 text-gray-700"
-        : task.status === "IN_PROGRESS"
-        ? "bg-blue-200 text-blue-700"
-        : "bg-green-200 text-green-700"
-      }
+                            ? "bg-gray-200 text-gray-700"
+                            : task.status === "IN_PROGRESS"
+                              ? "bg-blue-200 text-blue-700"
+                              : "bg-green-200 text-green-700"
+                          }
     `}
-  >
-    <option value="TODO">
-      To Do
-    </option>
+                      >
+                        <option value="TODO">To Do</option>
+                        <option value="IN_PROGRESS">In Progress</option>
+                        <option value="COMPLETED">Completed</option>
+                      </select>
 
-    <option value="IN_PROGRESS">
-      In Progress
-    </option>
+                    )}
 
-    <option value="COMPLETED">
-      Completed
-    </option>
-  </select>
 
-</div>
+                  </div>
 
                   <p className="text-xs text-gray-500 mt-2">
                     👤 {task.assignedUser?.name}
@@ -427,16 +441,15 @@ function Tasks() {
                   </span>
 
                   <div className="flex gap-2 mt-3 flex-wrap">
-                  <button
-  onClick={() => setSelectedTask(task)}
-  className="text-xs px-2 py-1 bg-indigo-500 text-white rounded"
->
-  💬 Comments
-</button>
-                    
-
-  
-                    {!isCollaborator && (
+                    {currentUser?.role !== "ADMINISTRATOR" && (
+                      <button
+                        onClick={() => setSelectedTask(task)}
+                        className="text-xs px-2 py-1 bg-indigo-500 text-white rounded"
+                      >
+                        💬 Comments
+                      </button>
+                    )}
+                    {currentUser?.role === "PROJECT_MANAGER" && (
                       <button
                         onClick={() => deleteTask(task.id)}
                         className="text-xs px-2 py-1 bg-red-500 text-white rounded"
@@ -452,11 +465,11 @@ function Tasks() {
         ))}
       </div>
       {selectedTask && (
-  <TaskDetailsModal
-    task={selectedTask}
-    onClose={() => setSelectedTask(null)}
-  />
-)}
+        <TaskDetailsModal
+          task={selectedTask}
+          onClose={() => setSelectedTask(null)}
+        />
+      )}
     </div>
   );
 }

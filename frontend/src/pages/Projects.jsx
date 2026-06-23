@@ -56,6 +56,9 @@ function Projects() {
     fetchUsers();
   }, []);
   const [isOpen, setIsOpen] = useState(false);
+  const user = JSON.parse(
+  localStorage.getItem("user")
+);
 
   const [form, setForm] = useState({
     name: "",
@@ -65,17 +68,21 @@ function Projects() {
   });
 
   const stats = useMemo(() => ({
-    total: projects.length,
-    active: projects.filter(p => p.status === "ACTIVE").length,
+  total: projects.length,
 
-    inProgress: projects.filter(
-      p => p.status === "IN_PROGRESS"
-    ).length,
+  planning: projects.filter(
+    p => p.status === "PLANNING"
+  ).length,
 
-    planning: projects.filter(
-      p => p.status === "PLANNING"
-    ).length,
-  }), [projects]);
+  inProgress: projects.filter(
+    p => p.status === "IN_PROGRESS"
+  ).length,
+
+  completed: projects.filter(
+    p => p.status === "COMPLETED"
+  ).length,
+
+}), [projects]);
 
   // REPLACE YOUR ENTIRE OLD handleCreate FUNCTION WITH THIS ONE:
   async function handleCreate() {
@@ -201,39 +208,47 @@ const handleStatusChange = async (
           <p className="text-gray-500">Manage and track all project initiatives</p>
         </div>
 
-        <button
-          onClick={() => setIsOpen(true)}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-lg"
-        >
-          + Create Project
-        </button>
+        {user?.role === "PROJECT_MANAGER" && (
+  <button
+    onClick={() => setIsOpen(true)}
+    className="bg-indigo-600 text-white px-4 py-2 rounded-lg"
+  >
+    + Create Project
+  </button>
+)}
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+{/* Stats */}
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
 
-        <div className="p-4 border rounded-lg bg-white">
-          <p className="text-sm text-gray-500">Total Projects</p>
-          <p className="text-xl font-bold">{stats.total}</p>
-        </div>
+  <div className="p-4 border rounded-lg bg-white">
+    <p className="text-sm text-gray-500">Total Projects</p>
+    <p className="text-xl font-bold">{stats.total}</p>
+  </div>
 
-        <div className="p-4 border rounded-lg bg-white">
-          <p className="text-sm text-gray-500">Active</p>
-          <p className="text-xl font-bold text-green-600">{stats.active}</p>
-        </div>
+  <div className="p-4 border rounded-lg bg-white">
+    <p className="text-sm text-gray-500">Planning</p>
+    <p className="text-xl font-bold text-yellow-600">
+      {stats.planning}
+    </p>
+  </div>
 
-        <div className="p-4 border rounded-lg bg-white">
-          <p className="text-sm text-gray-500">In Progress</p>
-          <p className="text-xl font-bold text-blue-600">{stats.inProgress}</p>
-        </div>
+  <div className="p-4 border rounded-lg bg-white">
+    <p className="text-sm text-gray-500">In Progress</p>
+    <p className="text-xl font-bold text-blue-600">
+      {stats.inProgress}
+    </p>
+  </div>
 
-        <div className="p-4 border rounded-lg bg-white">
-          <p className="text-sm text-gray-500">Planning</p>
-          <p className="text-xl font-bold text-yellow-600">{stats.planning}</p>
-        </div>
+  <div className="p-4 border rounded-lg bg-white">
+    <p className="text-sm text-gray-500">Completed</p>
+    <p className="text-xl font-bold text-green-600">
+      {stats.completed}
+    </p>
+  </div>
 
-      </div>
-      <div className="flex gap-3 mb-6">
+</div>     
+ <div className="flex gap-3 mb-6">
 
         <input
           type="text"
@@ -251,7 +266,7 @@ const handleStatusChange = async (
           <option value="">All Status</option>
           <option value="PLANNING">Planning</option>
           <option value="IN_PROGRESS">In Progress</option>
-          <option value="ACTIVE">Active</option>
+          
           <option value="COMPLETED">Completed</option>
         </select>
 
@@ -277,43 +292,55 @@ const handleStatusChange = async (
     </p>
   </div>
 
+  {user?.role === "PROJECT_MANAGER" ? (
+
   <select
-  value={project.status}
-  onChange={(e) =>
-    handleStatusChange(
-      project.id,
-      e.target.value
-    )
-  }
-  className={`
-    text-xs font-medium rounded px-2 py-1 border-0 outline-none cursor-pointer
-
-    ${project.status === "PLANNING"
-      ? "bg-yellow-100 text-yellow-700"
-      : project.status === "IN_PROGRESS"
-      ? "bg-blue-100 text-blue-700"
-      : project.status === "ACTIVE"
-      ? "bg-green-100 text-green-700"
-      : "bg-emerald-100 text-emerald-700"
+    value={project.status}
+    onChange={(e) =>
+      handleStatusChange(
+        project.id,
+        e.target.value
+      )
     }
-  `}
->
-  <option value="PLANNING">
-    Planning
-  </option>
+    className={`
+      text-xs font-medium rounded px-2 py-1 border-0 outline-none
 
-  <option value="IN_PROGRESS">
-    In Progress
-  </option>
+      ${project.status === "PLANNING"
+        ? "bg-yellow-100 text-yellow-700"
+        : project.status === "IN_PROGRESS"
+        ? "bg-blue-100 text-blue-700"
+        : project.status === "ACTIVE"
+        ? "bg-green-100 text-green-700"
+        : "bg-emerald-100 text-emerald-700"
+      }
+    `}
+  >
+    <option value="PLANNING">Planning</option>
+    <option value="IN_PROGRESS">In Progress</option>
+   
+    <option value="COMPLETED">Completed</option>
+  </select>
 
-  <option value="ACTIVE">
-    Active
-  </option>
+) : (
 
-  <option value="COMPLETED">
-    Completed
-  </option>
-</select>
+  <span
+    className={`
+      text-xs font-medium rounded px-2 py-1
+
+      ${project.status === "PLANNING"
+        ? "bg-yellow-100 text-yellow-700"
+        : project.status === "IN_PROGRESS"
+        ? "bg-blue-100 text-blue-700"
+        : project.status === "ACTIVE"
+        ? "bg-green-100 text-green-700"
+        : "bg-emerald-100 text-emerald-700"
+      }
+    `}
+  >
+    {project.status}
+  </span>
+
+)}
 </div>
 <div className="mt-4 space-y-2 text-sm">
 
@@ -355,12 +382,16 @@ const handleStatusChange = async (
     💬 Comments
   </button>
 
+  {user?.role === "PROJECT_MANAGER" && (
   <button
-    onClick={() => handleDeleteProject(project.id)}
+    onClick={() =>
+      handleDeleteProject(project.id)
+    }
     className="text-red-600 text-sm"
   >
     🗑 Delete
   </button>
+)}
 
 </div>
             
@@ -370,7 +401,7 @@ const handleStatusChange = async (
       </div>
 
       {/* MODAL */}
-      {isOpen && (
+      {isOpen && user?.role === "PROJECT_MANAGER" && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
 
           <div className="bg-white p-6 rounded-xl w-full max-w-md">
@@ -418,7 +449,7 @@ const handleStatusChange = async (
             >
               <option value="PLANNING">Planning</option>
               <option value="IN_PROGRESS">In Progress</option>
-              <option value="ACTIVE">Active</option>
+             
               <option value="COMPLETED">Completed</option>
             </select>
 

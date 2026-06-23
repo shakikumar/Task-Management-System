@@ -3,19 +3,25 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 
-const currentUser = JSON.parse(
-  localStorage.getItem("user")
-);
 
-const dashboardTitle =
-  currentUser?.role === "PROJECT_MANAGER"
-    ? "Project Manager Dashboard"
-    : currentUser?.role === "COLLABORATOR"
-      ? "Collaborator Dashboard"
-      : "Admin Dashboard";
 
 export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  
+
+  const currentUser = JSON.parse(
+    localStorage.getItem("user")
+  );
+
+  const dashboardTitle =
+    currentUser?.role === "PROJECT_MANAGER"
+      ? "Project Manager Dashboard"
+      : currentUser?.role === "COLLABORATOR"
+      ? "Collaborator Dashboard"
+      : "Admin Dashboard";
+
+  
 
   return (
     <div className="min-h-screen bg-slate-50">

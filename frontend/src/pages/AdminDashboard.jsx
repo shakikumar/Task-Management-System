@@ -8,6 +8,8 @@ import { useNavigate } from "react-router-dom";
 
 
 
+
+
 /* -------------------------------------------------------------------------- */
 /*  Shared UI helpers                                                         */
 /* -------------------------------------------------------------------------- */
@@ -171,16 +173,32 @@ function RecentProjects({ projects, navigate }) {
   );
 }
 
-function TeamMembers({ users }) {
+function TeamMembers({ users, navigate }) {
   return (
     <section className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6">
       <header className="mb-5">
-        <h2 className="text-base font-semibold text-slate-900">
-          Team Members
-        </h2>
-        <p className="text-sm text-slate-500">
-          System Users
-        </p>
+        <div className="flex justify-between items-center mb-4">
+
+          <div>
+            <h2 className="text-xl font-semibold">
+              Team Members
+            </h2>
+
+            <p className="text-gray-500">
+              System Users
+            </p>
+          </div>
+
+          <button
+            onClick={() =>
+              navigate("/admin/users")
+            }
+            className="mt-2 text-sm font-medium text-indigo-600 transition-colors hover:text-indigo-700 sm:mt-0"
+          >
+            View All Members →
+          </button>
+
+        </div>
       </header>
 
       <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -268,7 +286,7 @@ function AdminDashboard() {
 
           const tasks = tasksRes.data.tasks || [];
 
-          
+
 
           setCollabStats({
             myTasks: tasks.length,
@@ -304,11 +322,11 @@ function AdminDashboard() {
             ),
           ]);
 
-        
+
 
         const tasks = tasksRes.data.tasks || [];
 
-        
+
 
         if (currentUser?.role === "PROJECT_MANAGER") {
 
@@ -339,7 +357,7 @@ function AdminDashboard() {
 
         }
 
-        
+
         setUsers(usersRes.data.users || []);
         setStats({
           totalUsers: usersRes.data.count || 0,
@@ -366,131 +384,131 @@ function AdminDashboard() {
 
 
   if (role === "PROJECT_MANAGER") {
-  return (
-    <div className="p-4 sm:p-6 lg:p-8">
+    return (
+      <div className="p-4 sm:p-6 lg:p-8">
 
-      <header className="mb-6 sm:mb-8">
-        <p className="text-sm font-medium text-indigo-600">
-          Project Manager
-        </p>
+        <header className="mb-6 sm:mb-8">
+          <p className="text-sm font-medium text-indigo-600">
+            Project Manager
+          </p>
 
-        <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-          Welcome Back, {currentUser?.name}
-        </h1>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+            Welcome Back, {currentUser?.name}
+          </h1>
 
-        <p className="mt-1 text-sm text-slate-500 sm:text-base">
-          Manage your projects and monitor team progress.
-        </p>
-      </header>
+          <p className="mt-1 text-sm text-slate-500 sm:text-base">
+            Manage your projects and monitor team progress.
+          </p>
+        </header>
 
-      <section>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <section>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
 
-          <StatCard
-            label="My Projects"
-            value={pmStats.myProjects}
-            icon="projects"
-            bg="bg-violet-50"
-            text="text-violet-600"
-            accent="from-violet-500 to-violet-600"
-          />
+            <StatCard
+              label="My Projects"
+              value={pmStats.myProjects}
+              icon="projects"
+              bg="bg-violet-50"
+              text="text-violet-600"
+              accent="from-violet-500 to-violet-600"
+            />
 
-          <StatCard
-            label="My Tasks"
-            value={pmStats.myTasks}
-            icon="progress"
-            bg="bg-indigo-50"
-            text="text-indigo-600"
-            accent="from-indigo-500 to-indigo-600"
-          />
+            <StatCard
+              label="My Tasks"
+              value={pmStats.myTasks}
+              icon="progress"
+              bg="bg-indigo-50"
+              text="text-indigo-600"
+              accent="from-indigo-500 to-indigo-600"
+            />
 
-          <StatCard
-            label="Pending Tasks"
-            value={pmStats.pendingTasks}
-            icon="progress"
-            bg="bg-amber-50"
-            text="text-amber-600"
-            accent="from-amber-500 to-orange-500"
-          />
+            <StatCard
+              label="Pending Tasks"
+              value={pmStats.pendingTasks}
+              icon="progress"
+              bg="bg-amber-50"
+              text="text-amber-600"
+              accent="from-amber-500 to-orange-500"
+            />
 
-          <StatCard
-            label="Completed Tasks"
-            value={pmStats.completedTasks}
-            icon="completed"
-            bg="bg-emerald-50"
-            text="text-emerald-600"
-            accent="from-emerald-500 to-emerald-600"
-          />
+            <StatCard
+              label="Completed Tasks"
+              value={pmStats.completedTasks}
+              icon="completed"
+              bg="bg-emerald-50"
+              text="text-emerald-600"
+              accent="from-emerald-500 to-emerald-600"
+            />
 
-        </div>
-      </section>
+          </div>
+        </section>
 
-    </div>
-  );
-}
+      </div>
+    );
+  }
   if (role === "COLLABORATOR") {
-  return (
-    <div className="p-4 sm:p-6 lg:p-8">
+    return (
+      <div className="p-4 sm:p-6 lg:p-8">
 
-      <header className="mb-6 sm:mb-8">
-        <p className="text-sm font-medium text-indigo-600">
-          Collaborator
-        </p>
+        <header className="mb-6 sm:mb-8">
+          <p className="text-sm font-medium text-indigo-600">
+            Collaborator
+          </p>
 
-        <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-          Welcome Back, {currentUser?.name}
-        </h1>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+            Welcome Back, {currentUser?.name}
+          </h1>
 
-        <p className="mt-1 text-sm text-slate-500 sm:text-base">
-          View and update your assigned tasks.
-        </p>
-      </header>
+          <p className="mt-1 text-sm text-slate-500 sm:text-base">
+            View and update your assigned tasks.
+          </p>
+        </header>
 
-      <section>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <section>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
 
-          <StatCard
-            label="My Tasks"
-            value={collabStats.myTasks}
-            icon="projects"
-            bg="bg-indigo-50"
-            text="text-indigo-600"
-            accent="from-indigo-500 to-indigo-600"
-          />
+            <StatCard
+              label="My Tasks"
+              value={collabStats.myTasks}
+              icon="projects"
+              bg="bg-indigo-50"
+              text="text-indigo-600"
+              accent="from-indigo-500 to-indigo-600"
+            />
 
-          <StatCard
-            label="Pending Tasks"
-            value={collabStats.pendingTasks}
-            icon="progress"
-            bg="bg-amber-50"
-            text="text-amber-600"
-            accent="from-amber-500 to-orange-500"
-          />
+            <StatCard
+              label="Pending Tasks"
+              value={collabStats.pendingTasks}
+              icon="progress"
+              bg="bg-amber-50"
+              text="text-amber-600"
+              accent="from-amber-500 to-orange-500"
+            />
 
-          <StatCard
-            label="Completed Tasks"
-            value={collabStats.completedTasks}
-            icon="completed"
-            bg="bg-emerald-50"
-            text="text-emerald-600"
-            accent="from-emerald-500 to-emerald-600"
-          />
+            <StatCard
+              label="Completed Tasks"
+              value={collabStats.completedTasks}
+              icon="completed"
+              bg="bg-emerald-50"
+              text="text-emerald-600"
+              accent="from-emerald-500 to-emerald-600"
+            />
 
-          <StatCard
-            label="High Priority"
-            value={collabStats.highPriorityTasks}
-            icon="users"
-            bg="bg-red-50"
-            text="text-red-600"
-            accent="from-red-500 to-red-600"
-          />
+            <StatCard
+              label="High Priority"
+              value={collabStats.highPriorityTasks}
+              icon="users"
+              bg="bg-red-50"
+              text="text-red-600"
+              accent="from-red-500 to-red-600"
+            />
 
-        </div>
-      </section>
+          </div>
+        </section>
 
-    </div>
-  );
-}
+      </div>
+    );
+  }
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       {/* Page header */}
@@ -555,7 +573,10 @@ function AdminDashboard() {
 
       {/* Team + Activity — two-column on large screens */}
       <div className="grid grid-cols-1 gap-6">
-        <TeamMembers users={users} />
+        <TeamMembers
+  users={users}
+  navigate={navigate}
+/>
 
         {/* Activity Timeline
 <div className="bg-white rounded-2xl border p-6">

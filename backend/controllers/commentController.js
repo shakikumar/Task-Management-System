@@ -13,9 +13,12 @@ const createComment = async (req, res) => {
     const { taskId } = req.params;
     const { content } = req.body;
 
-    const task = await prisma.task.findUnique({
-      where: { id: taskId }
-    });
+   const task = await prisma.task.findUnique({
+  where: { id: taskId },
+  include: {
+    project: true
+  }
+});
 
     if (!task) {
       return res.status(404).json({
@@ -52,17 +55,26 @@ const { getIO } = require("../sockets/socketServer");
         }
       }
     });
-    const notification = await prisma.notification.create({
-  data: {
-    userId: task.assignedUserId,
-    message: `${req.user.name} commented on task: ${task.title}`
-  }
-});
+   const receiverId =
+  req.user.role === "COLLABORATOR"
+    ? task.project.createdById
+    : task.assignedUserId;
 
-getIO().to(task.assignedUserId).emit(
-  "newNotification",
-  notification
-);
+if (receiverId !== req.user.id) {
+
+  const notification =
+    await prisma.notification.create({
+      data: {
+        userId: receiverId,
+        message: `${req.user.name} commented on task: ${task.title}`
+      }
+    });
+
+  getIO().to(receiverId).emit(
+    "newNotification",
+    notification
+  );
+}
 
     res.status(201).json({
       success: true,

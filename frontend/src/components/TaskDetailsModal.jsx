@@ -407,9 +407,14 @@ const TaskDetailsModal = ({ task, onClose }) => {
                         : "📎"}
                   </span>
 
-                  <span className="text-sm text-gray-700 truncate max-w-[200px]">
-                    {fileName}
-                  </span>
+                  <a
+  href={file.fileUrl}
+  target="_blank"
+  rel="noopener noreferrer"
+  className="text-sm text-blue-600 hover:underline truncate max-w-[250px]"
+>
+  {fileName}
+</a>
 
                 </div>
 
