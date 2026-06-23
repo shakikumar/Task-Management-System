@@ -4,7 +4,7 @@
 // ==============================
 
 require('dotenv').config();           // Loads your .env file
-require("./jobs/dueDateChecker");       // due to date
+
 
 const taskRoutes = require('./routes/taskRoutes');
 const commentRoutes = require('./routes/commentRoutes');
@@ -22,6 +22,7 @@ const notificationRoutes = require('./routes/notificationRoutes');
 
 
 
+
 // ── PHASE 1 ROUTE ────────────────────────────────────────────────────────────
 const authRoutes = require('./routes/authRoutes');
 const attachmentRoutes = require('./routes/attachmentRoutes');
@@ -34,6 +35,8 @@ const projectRoutes = require('./routes/projectRoutes');
 // Create the Express app — think of this as "turning on the restaurant"
 const app = express();
 const server = http.createServer(app);
+
+require("./jobs/dueDateChecker");       // due to date
 
 app.use(helmet());
 

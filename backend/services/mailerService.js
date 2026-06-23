@@ -93,8 +93,42 @@ const sendOnboardingEmail = async (userEmail, temporaryPassword) => {
   }
 };
 
+const sendDueDateReminderEmail = async (
+  userEmail,
+  taskTitle,
+  dueDate
+) => {
+
+  const mailOptions = {
+    from: `"Task Management System" <${process.env.SMTP_USER}>`,
+    to: userEmail,
+    subject: "Task Due Date Reminder",
+
+    html: `
+      <h2>Task Reminder</h2>
+
+      <p>Your assigned task is approaching its due date.</p>
+
+      <p>
+        <b>Task:</b> ${taskTitle}<br/>
+        <b>Due Date:</b> ${new Date(
+          dueDate
+        ).toLocaleDateString()}
+      </p>
+
+      <p>Please complete it before the deadline.</p>
+    `
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+
+
+
 module.exports = {
   sendOnboardingEmail,
   sendTaskAssignmentEmail,
-  sendProjectAssignmentEmail
+  sendProjectAssignmentEmail,
+  sendDueDateReminderEmail,
+
 };

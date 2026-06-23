@@ -13,6 +13,7 @@ function Tasks() {
   const [title, setTitle] = useState("");
   const [assignee, setAssignee] = useState("");
   const [priority, setPriority] = useState("Medium");
+  const [dueDate, setDueDate] = useState("");
   const [projects, setProjects] = useState([]);
   const [users, setUsers] = useState([]);
 
@@ -139,22 +140,24 @@ function Tasks() {
 
     try {
       const res = await axios.post(
-        API_URL,
-        {
-          title,
-          projectId: selectedProject,
-          assignedUserId: selectedUser,
-          priority: priority.toUpperCase(),
-          status: "TODO",
-        },
-        getAuthHeader()
-      );
+  API_URL,
+  {
+    title,
+    projectId: selectedProject,
+    assignedUserId: selectedUser,
+    priority: priority.toUpperCase(),
+    status: "TODO",
+    dueDate
+  },
+  getAuthHeader()
+);
 
       setTasks((prev) => [res.data.task, ...prev]);
 
       setTitle("");
       setAssignee("");
       setPriority("Medium");
+      setDueDate("");
     } catch (error) {
       console.log("FULL ERROR:", error.response?.data);
     }
@@ -247,7 +250,7 @@ function Tasks() {
         <div className="mb-6 bg-white p-4 rounded shadow-sm border">
           <h2 className="font-semibold mb-3">Add New Task</h2>
 
-          <div className="flex gap-2 flex-wrap">
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
             <input
               className="border p-2 rounded"
               placeholder="Task title"
@@ -300,7 +303,13 @@ function Tasks() {
               <option>Medium</option>
               <option>Low</option>
             </select>
-
+ <input
+  type="date"
+  value={dueDate}
+  onChange={(e) => setDueDate(e.target.value)}
+  className="border p-2 rounded"
+  min={new Date().toISOString().split("T")[0]}
+/>          
             <button
               onClick={addTask}
               className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
@@ -431,6 +440,13 @@ function Tasks() {
                   <p className="text-xs text-blue-600">
                     📁 {task.project?.name}
                   </p>
+
+                  {task.dueDate && (
+  <p className="text-xs text-orange-600 mt-1">
+    📅 Due:{" "}
+    {new Date(task.dueDate).toLocaleDateString()}
+  </p>
+)}
 
                   <span
                     className={`inline-block mt-2 text-xs px-2 py-1 rounded-full ${getPriorityBadge(
