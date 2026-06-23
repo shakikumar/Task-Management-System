@@ -1,58 +1,52 @@
 // ==============================
 // middleware/uploadMiddleware.js
-// Handles file uploads safely:
+// Handles file upload validation:
 // - Only allows PDF, PNG, JPG
 // - Max file size: 5MB
-// - Random filenames (prevents attacks & overwrites)
+// - Uses MEMORY storage (file held in memory)
+// - Then sent to Supabase Storage by the controller
 // ==============================
 
 const multer = require('multer');
 const path = require('path');
-const crypto = require('crypto');
 
-// ---- STEP 1: Where to save files & what to name them ----
-const storage = multer.diskStorage({
+// ---- STORAGE: Memory (not disk anymore!) ----
+// Instead of saving to uploads/ folder,
+// the file is held in memory (req.file.buffer)
+// so we can send it directly to Supabase
+const storage = multer.memoryStorage();
 
-  // WHERE to save the file
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/'); // saves into backend/uploads folder
-  },
-
-  // WHAT to name the file
-  filename: (req, file, cb) => {
-    // Generate a random string instead of using the original filename
-    // Example: instead of "report.pdf", save as "a8f3c21b9e4d5f1a.pdf"
-    const randomName = crypto.randomBytes(16).toString('hex');
-
-    // Keep the original file extension (.pdf, .png, .jpg)
-    const fileExtension = path.extname(file.originalname);
-
-    // Combine them: a8f3c21b9e4d5f1a.pdf
-    cb(null, randomName + fileExtension);
-  }
-});
-
-// ---- STEP 2: Only allow specific file types ----
+// ---- FILE TYPE FILTER ----
 const fileFilter = (req, file, cb) => {
 
-  // List of MIME types we allow
-  const allowedTypes = ['application/pdf', 'image/png', 'image/jpeg'];
+  // Check by MIME type
+  const allowedTypes = [
+    'application/pdf',
+    'image/png',
+    'image/jpeg',
+    'application/octet-stream' // Windows sometimes sends this
+  ];
 
-  if (allowedTypes.includes(file.mimetype)) {
-    // File type is safe — allow it
-    cb(null, true);
+  // Check by file extension as backup
+  const allowedExtensions = ['.pdf', '.png', '.jpg', '.jpeg'];
+  const fileExtension = path.extname(file.originalname).toLowerCase();
+
+  if (allowedTypes.includes(file.mimetype) ||
+      allowedExtensions.includes(fileExtension)) {
+    cb(null, true); // accept the file
   } else {
-    // File type is NOT allowed — reject it
-    cb(new Error('Invalid file type. Only PDF, PNG, and JPG files are allowed.'), false);
+    cb(new Error(
+      'Invalid file type. Only PDF, PNG, and JPG files are allowed.'
+    ), false); // reject the file
   }
 };
 
-// ---- STEP 3: Combine everything into the upload tool ----
+// ---- COMBINE EVERYTHING ----
 const upload = multer({
-  storage: storage,
-  fileFilter: fileFilter,
+  storage: storage,        // memory storage
+  fileFilter: fileFilter,  // type checking
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB maximum file size
+    fileSize: 5 * 1024 * 1024 // 5MB max
   }
 });
 
