@@ -372,26 +372,18 @@ const handleStatusChange = async (
   </div>
 
 </div>
-<div className="mt-4 flex justify-between border-t pt-3">
-
-  
-
-  <button
-    className="text-purple-600 text-sm"
-  >
-    💬 Comments
-  </button>
+<div className="mt-4 flex justify-end border-t pt-3">
 
   {user?.role === "PROJECT_MANAGER" && (
-  <button
-    onClick={() =>
-      handleDeleteProject(project.id)
-    }
-    className="text-red-600 text-sm"
-  >
-    🗑 Delete
-  </button>
-)}
+    <button
+      onClick={() =>
+        handleDeleteProject(project.id)
+      }
+      className="text-red-600 text-sm"
+    >
+      🗑 Delete
+    </button>
+  )}
 
 </div>
             
