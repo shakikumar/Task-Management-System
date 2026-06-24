@@ -47,11 +47,11 @@ function NotificationButton({
       type="button"
       onClick={onClick}
       aria-label="Notifications"
-      className="relative flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
+      className="relative flex h-9.5 w-9.5 items-center justify-center rounded-xl text-purple-500 transition-all hover:bg-purple-50/50 hover:text-purple-700"
     >
       <BellIcon />
       {unreadCount > 0 && (
-        <span className="absolute -top-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+        <span className="absolute -top-0.5 -right-0.5 flex h-4.5 min-w-[18px] items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-pink-500 px-1 text-[9px] font-bold text-white shadow-[0_0_6px_rgba(168,85,247,0.5)]">
           {unreadCount}
         </span>
       )}
@@ -68,12 +68,12 @@ function UserAvatar({ name = "User", initials = "U" }) {
     <button
       type="button"
       aria-label={`${name} account menu`}
-      className="flex items-center gap-2.5 rounded-lg py-1 pl-1 pr-2 transition-colors hover:bg-slate-100"
+      className="flex items-center gap-2.5 rounded-xl py-1 pl-1 pr-2.5 transition-colors hover:bg-purple-50/40"
     >
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-xs font-semibold text-white shadow-sm">
+      <div className="flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 text-xs font-bold text-white shadow-[0_2px_8px_rgba(124,58,237,0.25)]">
         {initials}
       </div>
-      <span className="hidden text-sm font-medium text-slate-700 sm:block">{name}</span>
+      <span className="hidden text-sm font-semibold text-slate-700 sm:block">{name}</span>
     </button>
   );
 }
@@ -92,32 +92,32 @@ function Navbar({
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
 
- useEffect(() => {
-  loadNotifications();
+  useEffect(() => {
+    loadNotifications();
 
-  const socket = io("http://localhost:5001");
+    const socket = io("http://localhost:5001");
 
-  const currentUser = JSON.parse(
-    localStorage.getItem("user")
-  );
+    const currentUser = JSON.parse(
+      localStorage.getItem("user")
+    );
 
-  if (currentUser?.id) {
-    socket.emit("join", currentUser.id);
-  }
+    if (currentUser?.id) {
+      socket.emit("join", currentUser.id);
+    }
 
-  socket.on("newNotification", (notification) => {
-    setNotifications((prev) => [
-      notification,
-      ...prev
-    ]);
+    socket.on("newNotification", (notification) => {
+      setNotifications((prev) => [
+        notification,
+        ...prev
+      ]);
 
-    setUnreadCount((prev) => prev + 1);
-  });
+      setUnreadCount((prev) => prev + 1);
+    });
 
-  return () => {
-    socket.disconnect();
-  };
-}, []);
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
   const loadNotifications = async () => {
     try {
       const res = await getNotifications();
@@ -134,7 +134,7 @@ function Navbar({
     }
   };
   return (
-    <header className="sticky top-0 z-30 h-16 shrink-0 border-b border-slate-200/80 bg-white/95 backdrop-blur-sm">
+    <header className="sticky top-0 z-30 h-16 shrink-0 border-b border-purple-100/50 bg-white/70 backdrop-blur-md">
       <div className="flex h-full items-center gap-4 px-4 sm:px-6">
 
         {/* Left — mobile menu toggle and current page title */}
@@ -143,17 +143,15 @@ function Navbar({
             type="button"
             onClick={onMenuClick}
             aria-label="Open navigation menu"
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-slate-100 lg:hidden"
+            className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 transition-colors hover:bg-slate-100/50 lg:hidden"
           >
             <MenuIcon />
           </button>
 
-          <h1 className="truncate text-base font-semibold text-slate-800 sm:text-lg">
+          <h1 className="truncate text-base font-extrabold text-slate-800 sm:text-lg">
             {title}
           </h1>
         </div>
-
-
 
         {/* Right — notifications and user profile */}
         <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
@@ -162,35 +160,44 @@ function Navbar({
             onClick={() => setShowNotifications(!showNotifications)}
           />
           {showNotifications && (
-            <div className="absolute right-16 top-14 w-80 rounded-lg border bg-white shadow-lg z-50">
+            <div className="absolute right-16 top-14 w-80 rounded-2xl border border-purple-100/60 bg-white p-2.5 shadow-[0_10px_30px_-5px_rgba(124,58,237,0.15)] z-50 animate-scale-up">
+              <style>{`
+                @keyframes scale-up {
+                  from { transform: scale(0.95); opacity: 0; }
+                  to { transform: scale(1); opacity: 1; }
+                }
+                .animate-scale-up {
+                  animation: scale-up 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                }
+              `}</style>
               
-              <div className="flex items-center justify-between border-b px-4 py-3">
-                <span className="font-semibold">Notifications</span>
+              <div className="flex items-center justify-between border-b border-purple-100/30 px-3 pb-2 pt-1.5">
+                <span className="font-bold text-slate-800 text-sm">Notifications</span>
 
                 <button
                   onClick={async () => {
                     await markAllAsRead();
                     await loadNotifications();
                   }}
-                  className="text-xs text-blue-600 hover:underline"
+                  className="text-xs font-bold text-purple-650 hover:text-purple-700 transition-colors hover:underline"
                 >
                   Mark All Read
                 </button>
               </div>
 
-              <div className="max-h-80 overflow-y-auto">
+              <div className="max-h-80 overflow-y-auto mt-2 space-y-1">
 
                 {notifications.length === 0 ? (
-                  <div className="px-4 py-3 text-sm text-gray-500">
-                    No notifications
+                  <div className="px-3 py-4 text-center text-xs text-slate-400">
+                    No notifications yet
                   </div>
                 ) : (
                   notifications.map((notification) => (
                     <div
                       key={notification.id}
-                      className={`border-b px-4 py-3 text-sm cursor-pointer ${!notification.isRead
-                        ? "bg-blue-50"
-                        : "bg-white text-gray-500"
+                      className={`px-3 py-2.5 text-xs rounded-xl cursor-pointer transition-all ${!notification.isRead
+                        ? "bg-purple-50/50 text-purple-950 font-bold border border-purple-100/30"
+                        : "text-slate-500 hover:bg-slate-50"
                         }`}
                       onClick={async () => {
                         if (!notification.isRead) {
@@ -206,7 +213,7 @@ function Navbar({
               </div>
             </div>
           )}
-          <div className="mx-1 hidden h-6 w-px bg-slate-200 sm:block" aria-hidden="true" />
+          <div className="mx-1 hidden h-6 w-px bg-purple-100 sm:block" aria-hidden="true" />
           <UserAvatar name={user.name} initials={user.initials} />
         </div>
 

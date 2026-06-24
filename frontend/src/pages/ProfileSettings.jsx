@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { UserCog, Save } from "lucide-react";
 
 function ProfileSettings() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [role, setRole] = useState("");
-  useEffect(() => {
 
+  useEffect(() => {
     const savedUser = JSON.parse(
       localStorage.getItem("user")
     );
@@ -17,14 +18,11 @@ function ProfileSettings() {
       setEmail(savedUser.email || "");
       setRole(savedUser.role || "");
     }
-
   }, []);
+
   const handleSaveProfile = async () => {
-
     try {
-
       const token = localStorage.getItem("token");
-
       const response = await axios.put(
         "http://localhost:5001/api/users/profile",
         {
@@ -44,80 +42,94 @@ function ProfileSettings() {
       );
 
       alert("Profile updated successfully");
-
     } catch (error) {
-
       alert(
         error.response?.data?.message ||
         "Failed to update profile"
       );
-
     }
-
   };
+
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 border rounded-lg shadow">
-      <h1 className="text-2xl font-bold mb-6 text-center">
-        Profile Settings
-      </h1>
+    <div className="min-h-screen bg-gradient-to-br from-violet-50/50 via-slate-50 to-indigo-50/50 text-slate-800 p-4 sm:p-6 lg:p-8 font-sans select-none">
+      
+      {/* HEADER */}
+      <header className="mb-8 max-w-md mx-auto">
+        <p className="text-xs font-semibold tracking-wider text-purple-500 uppercase">Preferences</p>
+        <h1 className="text-3xl font-extrabold tracking-tight text-slate-850 mt-1">Profile Settings</h1>
+      </header>
 
-      <div className="mb-4">
-        <label className="block mb-1 font-medium">
-          Full Name
-        </label>
-        <input
-          type="text"
-          placeholder="Enter your name"
-          className="border p-2 w-full rounded"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
+      {/* FORM CARD */}
+      <div className="max-w-md mx-auto bg-white/95 border border-purple-100/50 p-6 sm:p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.03)]">
+        
+        <div className="flex items-center gap-2 mb-6 text-slate-855 border-b border-purple-50 pb-3.5">
+          <UserCog size={20} className="text-violet-500" />
+          <h2 className="font-bold text-lg text-slate-800">Personal Details</h2>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block mb-1.5 text-xs font-bold text-purple-600/80 uppercase tracking-wider">
+              Full Name
+            </label>
+            <input
+              type="text"
+              placeholder="Enter your name"
+              className="w-full bg-white border border-purple-100 rounded-xl px-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="block mb-1.5 text-xs font-bold text-purple-600/80 uppercase tracking-wider">
+              Email Address
+            </label>
+            <input
+              type="email"
+              placeholder="Enter your email"
+              className="w-full bg-white border border-purple-100 rounded-xl px-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="block mb-1.5 text-xs font-bold text-purple-600/80 uppercase tracking-wider">
+              Phone Number
+            </label>
+            <input
+              type="text"
+              placeholder="Enter phone number"
+              className="w-full bg-white border border-purple-100 rounded-xl px-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="block mb-1.5 text-xs font-bold text-purple-600/80 uppercase tracking-wider">
+              Role
+            </label>
+            <input
+              type="text"
+              value={role}
+              readOnly
+              className="w-full bg-slate-50/70 border border-purple-100/50 rounded-xl px-4 py-2.5 text-sm text-slate-500/80 cursor-not-allowed outline-none"
+            />
+          </div>
+
+          <div className="pt-3">
+            <button
+              onClick={handleSaveProfile}
+              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-3 text-sm font-semibold text-white hover:from-emerald-500 hover:to-teal-500 hover:shadow-[0_8px_20px_rgba(16,185,129,0.25)] transition-all duration-200 cursor-pointer"
+            >
+              <Save size={16} />
+              Save Changes
+            </button>
+          </div>
+        </div>
       </div>
-
-      <div className="mb-4">
-        <label className="block mb-1 font-medium">
-          Email Address
-        </label>
-        <input
-          type="email"
-          placeholder="Enter your email"
-          className="border p-2 w-full rounded"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-      </div>
-
-      <div className="mb-4">
-        <label className="block mb-1 font-medium">
-          Phone Number
-        </label>
-        <input
-          type="text"
-          placeholder="Enter phone number"
-          className="border p-2 w-full rounded"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-        />
-      </div>
-
-      <div className="mb-6">
-        <label className="block mb-1 font-medium">
-          Role
-        </label>
-        <input
-          type="text"
-          value={role}
-          readOnly
-          className="border p-2 w-full rounded bg-gray-100"
-        />
-      </div>
-
-      <button
-        onClick={handleSaveProfile}
-        className="bg-green-500 text-white px-4 py-2 rounded w-full"
-      >
-        Save Changes
-      </button>
     </div>
   );
 }

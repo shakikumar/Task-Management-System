@@ -70,16 +70,16 @@ const navItems = [
 
 function navLinkClass(isActive, collapsed) {
   return [
-    "group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#16161f]",
+    "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B0516]",
     collapsed ? "lg:justify-center lg:gap-0 lg:px-2" : "",
     isActive
       ? [
-        "bg-indigo-500/15 text-white shadow-sm ring-1 ring-indigo-500/25",
-        "before:absolute before:left-0 before:top-1/2 before:h-6 before:w-[3px] before:-translate-y-1/2 before:rounded-r-full before:bg-indigo-400",
+        "bg-purple-650/20 text-white shadow-sm ring-1 ring-purple-500/35",
+        "before:absolute before:left-0 before:top-1/2 before:h-6 before:w-[3px] before:-translate-y-1/2 before:rounded-r-full before:bg-purple-400 before:shadow-[0_0_8px_rgba(168,85,247,0.8)]",
         collapsed ? "lg:before:h-5" : "",
       ].join(" ")
-      : "text-slate-400 hover:bg-white/5 hover:text-slate-200",
+      : "text-slate-400 hover:bg-purple-500/5 hover:text-purple-200",
   ].join(" ");
 }
 
@@ -179,7 +179,7 @@ function Sidebar({
         aria-label="Main sidebar"
         className={[
           "fixed top-0 left-0 z-50 flex h-screen w-[260px] flex-col",
-          "border-r border-white/[0.06] bg-[#16161f]",
+          "border-r border-purple-500/15 bg-[#0c051a]/95 backdrop-blur-xl",
           "transition-[transform,width] duration-300 ease-in-out",
           "lg:translate-x-0",
           collapsed ? "lg:w-[72px]" : "lg:w-[260px]",
@@ -189,22 +189,19 @@ function Sidebar({
         {/* Brand */}
         <div
           className={[
-            "flex h-16 shrink-0 items-center border-b border-white/[0.06]",
+            "flex h-16 shrink-0 items-center border-b border-purple-500/15",
             collapsed ? "justify-center px-2 lg:px-0" : "justify-between px-5",
           ].join(" ")}
         >
           <div className={["flex items-center", collapsed ? "lg:justify-center" : "gap-2.5"].join(" ")}>
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/25">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 shadow-md shadow-purple-500/30">
+              {/* Checkmark style icon or standard lightning logo paths */}
               <SidebarIcon paths={ICON_PATHS.logo} className="h-4 w-4 text-white" strokeWidth={2.5} />
             </div>
-            <span
-              className={[
-                "text-lg font-semibold tracking-tight text-white",
-                collapsed ? "lg:hidden" : "",
-              ].join(" ")}
-            >
-              Task Management System
-            </span>
+            <div className={["flex flex-col", collapsed ? "lg:hidden" : ""].join(" ")}>
+              <span className="text-sm font-bold tracking-wider text-white uppercase">TASK</span>
+              <span className="text-[8px] font-semibold tracking-[0.2em] text-purple-300/60 uppercase">MANAGEMENT SYSTEM</span>
+            </div>
           </div>
 
           {/* Mobile close */}
@@ -212,7 +209,7 @@ function Sidebar({
             type="button"
             onClick={onClose}
             aria-label="Close sidebar"
-            className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-white/5 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 lg:hidden"
+            className="rounded-xl p-1.5 text-slate-400 transition-colors hover:bg-white/5 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500/50 lg:hidden"
           >
             <SidebarIcon paths={ICON_PATHS.close} />
           </button>
@@ -222,7 +219,7 @@ function Sidebar({
         <nav id="sidebar-navigation" className="flex-1 overflow-y-auto px-3 py-4" aria-label="Main navigation">
           <p
             className={[
-              "mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500",
+              "mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-purple-400/80",
               collapsed ? "lg:sr-only" : "",
             ].join(" ")}
           >
@@ -253,9 +250,9 @@ function Sidebar({
             aria-expanded={!collapsed}
             aria-controls="sidebar-navigation"
             className={[
-              "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-slate-400 transition-colors",
+              "flex w-full items-center gap-3 rounded-xl px-3 py-2 text-slate-400 transition-colors",
               "hover:bg-white/5 hover:text-slate-200",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500/50",
               collapsed ? "lg:justify-center lg:gap-0 lg:px-2" : "",
             ].join(" ")}
           >
@@ -267,16 +264,15 @@ function Sidebar({
         </div>
 
         {/* Footer */}
-        <div className="shrink-0 border-t border-white/[0.06] p-4">
-         
+        <div className="shrink-0 border-t border-purple-500/15 p-4">
           <button
             type="button"
             onClick={handleLogout}
             title={collapsed ? "Logout" : undefined}
             aria-label="Logout"
             className={[
-              "mt-3 flex w-full items-center rounded-lg py-2.5 text-sm font-medium transition-colors",
-              "bg-red-600/10 text-red-400 hover:bg-red-600 hover:text-white",
+              "mt-1 flex w-full items-center rounded-xl py-2.5 text-sm font-medium transition-all duration-200",
+              "bg-red-500/10 text-red-400 hover:bg-red-600 hover:text-white border border-red-500/25",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/50",
               collapsed ? "lg:justify-center lg:gap-0 lg:px-2" : "gap-3 px-3",
             ].join(" ")}
