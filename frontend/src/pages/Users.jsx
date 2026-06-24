@@ -291,24 +291,7 @@ function Users() {
                 </td>
                 <td className="p-3">
                   <div className="flex items-center justify-end gap-2">
-                    <select
-                      value={u.role}
-                      onChange={(e) => handleRoleChange(u.id, e.target.value)}
-                      aria-label={`Change role for ${u.name}`}
-                      className="rounded-lg border border-slate-200 px-2 py-1.5 text-xs text-slate-700 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                    >
-                      <option value="ADMINISTRATOR">
-                        Administrator
-                      </option>
-
-                      <option value="PROJECT_MANAGER">
-                        Project Manager
-                      </option>
-
-                      <option value="COLLABORATOR">
-                        Collaborator
-                      </option>
-                    </select>
+                    
                     <button
                       type="button"
                       onClick={() => handleDelete(u.id)}
