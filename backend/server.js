@@ -5,18 +5,27 @@
 
 require('dotenv').config();           // Loads your .env file
 
+
 const taskRoutes = require('./routes/taskRoutes');
 const commentRoutes = require('./routes/commentRoutes');
 const express = require('express');   // The web server framework
-const cors = require('cors');         // Allows frontend to talk to backend
-
+const cors = require('cors');
+const http = require('http');
+const helmet = require('helmet');         // Allows frontend to talk to backend
+const { initializeSocket } = require('./sockets/socketServer');
+const { sanitizeInput } = require("./middleware/securityMiddleware");
 // Swagger API Documentation
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
+// notification
+const notificationRoutes = require('./routes/notificationRoutes');
+
+
 
 
 // ── PHASE 1 ROUTE ────────────────────────────────────────────────────────────
 const authRoutes = require('./routes/authRoutes');
+const attachmentRoutes = require('./routes/attachmentRoutes');
 
 // ── PHASE 2 ROUTES (NEW) ─────────────────────────────────────────────────────
 const userRoutes = require('./routes/userRoutes');
@@ -25,6 +34,11 @@ const projectRoutes = require('./routes/projectRoutes');
 
 // Create the Express app — think of this as "turning on the restaurant"
 const app = express();
+const server = http.createServer(app);
+
+require("./jobs/dueDateChecker");       // due to date
+
+app.use(helmet());
 
 // ==============================
 // MIDDLEWARE (things that run on EVERY request)
@@ -39,6 +53,9 @@ app.use(cors({
 // This tells Express to understand JSON data sent from the frontend
 // Without this, req.body would be empty when frontend sends data
 app.use(express.json());
+
+app.use('/uploads', express.static('uploads'));
+app.use(sanitizeInput);
 
 // ==============================
 // ROUTES (the URLs your server listens to)
@@ -61,6 +78,7 @@ app.get('/api/docs.json', (req, res) => {
 
 // Phase 1
 app.use('/api/auth', authRoutes);
+app.use('/api/attachments', attachmentRoutes);
 
 // Phase 2 (NEW)
 app.use('/api/users', userRoutes);
@@ -69,10 +87,17 @@ app.use('/api/projects', projectRoutes);
 // Phase 3(NEW)
 app.use('/api/tasks', taskRoutes);
 app.use('/api/comments', commentRoutes);
+// phase 5 (notification)
+app.use('/api/notifications', notificationRoutes);
 // A simple test route — visit http://localhost:5001/ to check if server is running
 app.get('/', (req, res) => {
   res.json({ message: '✅ TMS Backend Server is running!' });
+
 });
+
+initializeSocket(server);
+
+
 
 // ==============================
 // START THE SERVER
@@ -80,6 +105,6 @@ app.get('/', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`✅ Server is running on http://localhost:${PORT}`);
 });

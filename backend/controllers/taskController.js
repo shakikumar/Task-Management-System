@@ -15,6 +15,13 @@ const mapErrorResponse = (res, error, defaultMsg) => {
  * @access Private (ADMINISTRATOR, PROJECT_MANAGER)
  */
 const createTask = async (req, res) => {
+  if (req.user.role !== "PROJECT_MANAGER") {
+  return res.status(403).json({
+    success: false,
+    message:
+      "Only Project Managers can create tasks"
+  });
+}
   try {
     const task = await taskService.createTask(req.body);
     return res.status(201).json({
@@ -87,6 +94,13 @@ const updateTask = async (req, res) => {
  * @access Private (ADMINISTRATOR, PROJECT_MANAGER)
  */
 const deleteTask = async (req, res) => {
+  if (req.user.role !== "PROJECT_MANAGER") {
+  return res.status(403).json({
+    success: false,
+    message:
+      "Only Project Managers can delete tasks"
+  });
+}
   try {
     await taskService.deleteTask(req.params.id);
     return res.status(200).json({

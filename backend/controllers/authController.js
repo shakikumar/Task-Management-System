@@ -109,8 +109,8 @@ const login = async (req, res) => {
       message: 'Something went wrong. Please try again later.'
     });
   }
-  }
-;
+}
+  ;
 const changePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
@@ -119,6 +119,16 @@ const changePassword = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'Current password and new password are required'
+      });
+    }
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
+
+    if (!passwordRegex.test(newPassword)) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number and one special character."
       });
     }
 
@@ -139,6 +149,17 @@ const changePassword = async (req, res) => {
     );
 
     if (!isMatch) {
+      const isSamePassword = await bcrypt.compare(
+        newPassword,
+        user.password
+      );
+
+      if (isSamePassword) {
+        return res.status(400).json({
+          success: false,
+          message: "New password must be different from the current password."
+        });
+      }
       return res.status(401).json({
         success: false,
         message: 'Current password is incorrect'

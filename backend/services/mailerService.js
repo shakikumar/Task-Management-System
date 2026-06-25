@@ -11,10 +11,58 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+const sendTaskAssignmentEmail = async (
+  userEmail,
+  taskTitle,
+  projectName
+) => {
+
+  const mailOptions = {
+    from: `"Task Management System" <${process.env.SMTP_USER}>`,
+    to: userEmail,
+    subject: "New Task Assigned",
+    html: `
+      <h2>New Task Assigned</h2>
+
+      <p>You have been assigned a new task.</p>
+
+      <p>
+        <b>Task:</b> ${taskTitle}<br/>
+        <b>Project:</b> ${projectName}
+      </p>
+    `
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+const sendProjectAssignmentEmail = async (
+  userEmail,
+  projectName
+) => {
+
+  const mailOptions = {
+    from: `"Task Management System" <${process.env.SMTP_USER}>`,
+    to: userEmail,
+    subject: "New Project Assigned",
+    html: `
+      <h2>New Project Assigned</h2>
+
+      <p>You have been assigned as Project Manager.</p>
+
+      <p>
+        <b>Project:</b> ${projectName}
+      </p>
+    `
+  };
+
+  await transporter.sendMail(mailOptions);
+};
 /**
  * Asynchronous service to dispatch temporary credentials to a newly onboarded user.
  */
 const sendOnboardingEmail = async (userEmail, temporaryPassword) => {
+  console.log("MAILER CALLED");
+  console.log("SMTP_USER:", process.env.SMTP_USER);
   const mailOptions = {
     from: `"Task Management System" <${process.env.SMTP_USER}>`,
     to: userEmail,
@@ -45,4 +93,42 @@ const sendOnboardingEmail = async (userEmail, temporaryPassword) => {
   }
 };
 
-module.exports = { sendOnboardingEmail };
+const sendDueDateReminderEmail = async (
+  userEmail,
+  taskTitle,
+  dueDate
+) => {
+
+  const mailOptions = {
+    from: `"Task Management System" <${process.env.SMTP_USER}>`,
+    to: userEmail,
+    subject: "Task Due Date Reminder",
+
+    html: `
+      <h2>Task Reminder</h2>
+
+      <p>Your assigned task is approaching its due date.</p>
+
+      <p>
+        <b>Task:</b> ${taskTitle}<br/>
+        <b>Due Date:</b> ${new Date(
+          dueDate
+        ).toLocaleDateString()}
+      </p>
+
+      <p>Please complete it before the deadline.</p>
+    `
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+
+
+
+module.exports = {
+  sendOnboardingEmail,
+  sendTaskAssignmentEmail,
+  sendProjectAssignmentEmail,
+  sendDueDateReminderEmail,
+
+};

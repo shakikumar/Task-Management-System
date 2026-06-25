@@ -2,9 +2,30 @@ const prisma = require('../config/prisma');
 
 // Create Comment
 const createComment = async (req, res) => {
+
+  if (req.user.role === "ADMINISTRATOR") {
+  return res.status(403).json({
+    success: false,
+    message: "Administrators cannot comment on tasks"
+  });
+}
   try {
     const { taskId } = req.params;
     const { content } = req.body;
+
+   const task = await prisma.task.findUnique({
+  where: { id: taskId },
+  include: {
+    project: true
+  }
+});
+
+    if (!task) {
+      return res.status(404).json({
+        success: false,
+        message: "Task not found"
+      });
+    }
 
     // Detect mentions like @john
     const mentions = content.match(/@(\w+)/g) || [];
@@ -17,7 +38,7 @@ const createComment = async (req, res) => {
         message: 'Comment content is required'
       });
     }
-
+const { getIO } = require("../sockets/socketServer");
     const comment = await prisma.comment.create({
       data: {
         content: content.trim(),
@@ -34,6 +55,26 @@ const createComment = async (req, res) => {
         }
       }
     });
+   const receiverId =
+  req.user.role === "COLLABORATOR"
+    ? task.project.createdById
+    : task.assignedUserId;
+
+if (receiverId !== req.user.id) {
+
+  const notification =
+    await prisma.notification.create({
+      data: {
+        userId: receiverId,
+        message: `${req.user.name} commented on task: ${task.title}`
+      }
+    });
+
+  getIO().to(receiverId).emit(
+    "newNotification",
+    notification
+  );
+}
 
     res.status(201).json({
       success: true,
@@ -109,15 +150,13 @@ const deleteComment = async (req, res) => {
 
     // Owner OR Admin OR Project Manager
     const isOwner = comment.userId === req.user.id;
-    const isAdmin = req.user.role === 'ADMINISTRATOR';
-    const isManager = req.user.role === 'PROJECT_MANAGER';
-
-    if (!isOwner && !isAdmin && !isManager) {
-      return res.status(403).json({
-        success: false,
-        message: 'You do not have permission to delete this comment'
-      });
-    }
+    
+if (!isOwner) {
+  return res.status(403).json({
+    success: false,
+    message: 'You can only delete your own comments'
+  });
+}
 
     await prisma.comment.delete({
       where: {

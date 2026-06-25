@@ -8,6 +8,8 @@ import { useNavigate } from "react-router-dom";
 
 
 
+
+
 /* -------------------------------------------------------------------------- */
 /*  Shared UI helpers                                                         */
 /* -------------------------------------------------------------------------- */
@@ -85,20 +87,20 @@ function ActivityDot({ type }) {
 
 function StatCard({ label, value, change, trend, icon, accent, bg, text }) {
   return (
-    <article className="group rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm transition-all duration-200 hover:border-slate-300 hover:shadow-md">
+    <article className="group rounded-2xl border border-purple-100/50 bg-white/80 p-5 shadow-[0_8px_30px_rgb(0,0,0,0.02)] transition-all duration-200 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:-translate-y-0.5">
       <div className="flex items-start justify-between">
-        <div className={`flex h-11 w-11 items-center justify-center rounded-lg ${bg}`}>
+        <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${bg}`}>
           <StatIcon type={icon} className={`h-5 w-5 ${text}`} />
         </div>
         <span
-          className={`text-xs font-medium ${trend === "up" ? "text-emerald-600" : "text-amber-600"}`}
+          className={`text-xs font-semibold px-2 py-0.5 rounded-full ${trend === "up" ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600"}`}
         >
           {change}
         </span>
       </div>
-      <p className="mt-4 text-sm font-medium text-slate-500">{label}</p>
-      <p className="mt-1 text-2xl font-bold tracking-tight text-slate-900">{value}</p>
-      <div className={`mt-3 h-1 w-full overflow-hidden rounded-full bg-slate-100`}>
+      <p className="mt-4 text-xs font-semibold tracking-wider text-purple-400 uppercase">{label}</p>
+      <p className="mt-1 text-2xl font-black text-slate-800 leading-none">{value}</p>
+      <div className={`mt-3 h-1.5 w-full overflow-hidden rounded-full bg-purple-50`}>
         <div className={`h-full w-2/3 rounded-full bg-gradient-to-r ${accent} opacity-80 transition-all group-hover:w-3/4`} />
       </div>
     </article>
@@ -107,59 +109,50 @@ function StatCard({ label, value, change, trend, icon, accent, bg, text }) {
 
 function RecentProjects({ projects, navigate }) {
   return (
-    <section className="rounded-xl border border-slate-200/80 bg-white shadow-sm">
-      <header className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+    <section className="rounded-2xl border border-purple-100/50 bg-white/80 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
+      <header className="flex items-center justify-between border-b border-purple-100/30 px-6 py-4">
         <div>
-          <h2 className="text-base font-semibold text-slate-900">Recent Projects</h2>
-          <p className="text-sm text-slate-500">Track progress across active workspaces</p>
+          <h2 className="text-base font-extrabold text-slate-800">Recent Projects</h2>
+          <p className="text-xs text-slate-500/80">Track progress across active workspaces</p>
         </div>
         <button
           type="button"
           onClick={() => navigate("/admin/projects")}
-          className="mt-2 text-sm font-medium text-indigo-600 transition-colors hover:text-indigo-700 sm:mt-0"
+          className="text-xs font-bold text-purple-650 hover:text-purple-700 transition-colors cursor-pointer hover:underline"
         >
           View all projects →
         </button>
       </header>
 
       <div className="overflow-x-auto">
-        <table className="w-[75%]">
+        <table className="w-full text-left text-sm border-collapse">
           <thead>
-            <tr className="border-b border-slate-100 text-xs font-semibold uppercase tracking-wider text-slate-500">
-              <th className="w-[50%] px-6 py-3">
-                Project
-              </th>
-
-              <th className="w-[25%] px-6 py-3 text-center">
-                Status
-              </th>
-
-              <th className="w-[25%] px-6 py-3 text-center">
-                Created Date
-              </th>
+            <tr className="border-b border-purple-100/30 bg-slate-50/50 text-[10px] font-bold uppercase tracking-wider text-purple-700/80">
+              <th className="px-6 py-3 font-bold">Project</th>
+              <th className="px-6 py-3 text-center font-bold">Status</th>
+              <th className="px-6 py-3 text-center font-bold">Created Date</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-purple-100/10">
             {projects.map((project) => (
               <tr
                 key={project.id}
-                className="transition-colors hover:bg-slate-50/80"
+                className="transition-colors hover:bg-violet-50/10"
               >
-                <td className="w-[50%] px-6 py-4">
+                <td className="px-6 py-4">
                   <p
-                    className="font-semibold text-slate-900 cursor-pointer hover:text-indigo-600"
+                    className="font-bold text-slate-800 cursor-pointer hover:text-purple-650 transition-colors"
                     onClick={() => navigate("/admin/projects")}
                   >
                     {project.name}
                   </p>
                 </td>
 
-
-                <td className="w-[25%] px-6 py-4 text-center">
+                <td className="px-6 py-4 text-center">
                   <StatusBadge status={project.status?.replaceAll("_", " ")} />
                 </td>
 
-                <td className="w-[25%] px-6 py-4 text-center">
+                <td className="px-6 py-4 text-center text-slate-500 font-medium">
                   {new Date(project.createdAt).toLocaleDateString("en-GB")}
                 </td>
               </tr>
@@ -171,36 +164,39 @@ function RecentProjects({ projects, navigate }) {
   );
 }
 
-function TeamMembers({ users }) {
+function TeamMembers({ users, navigate }) {
   return (
-    <section className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6">
+    <section className="rounded-2xl border border-purple-100/50 bg-white/80 p-5 shadow-[0_8px_30px_rgb(0,0,0,0.02)] sm:p-6">
       <header className="mb-5">
-        <h2 className="text-base font-semibold text-slate-900">
-          Team Members
-        </h2>
-        <p className="text-sm text-slate-500">
-          System Users
-        </p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-base font-extrabold text-slate-800">Team Members</h2>
+            <p className="text-xs text-slate-500/80">System Users</p>
+          </div>
+          <button
+            onClick={() => navigate("/admin/users")}
+            className="text-xs font-bold text-purple-650 hover:text-purple-700 transition-colors cursor-pointer hover:underline"
+          >
+            View All Members →
+          </button>
+        </div>
       </header>
 
-      <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {users.slice(0, 6).map((user) => (
           <li
             key={user.id}
-            className="flex items-center gap-3 rounded-lg border border-slate-100 p-3"
+            className="flex items-center gap-3.5 rounded-xl border border-purple-100/40 bg-white/60 p-3.5 shadow-sm transition-all hover:shadow-md"
           >
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-600 text-white">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 text-sm font-bold text-white shadow-sm shadow-purple-500/20">
               {user.name?.charAt(0).toUpperCase()}
             </div>
 
-            <div className="flex-1">
-              <p className="font-medium">
-                {user.name}
-              </p>
-
-              <p className="text-sm text-gray-500">
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-slate-800 truncate">{user.name}</p>
+              <span className="inline-flex items-center mt-0.5 rounded-full bg-purple-50 px-2 py-0.5 text-[10px] font-bold text-purple-650 uppercase tracking-wider">
                 {user.role?.replaceAll("_", " ")}
-              </p>
+              </span>
             </div>
           </li>
         ))}
@@ -209,12 +205,10 @@ function TeamMembers({ users }) {
   );
 }
 
-
 /* -------------------------------------------------------------------------- */
 /*  AdminDashboard — main page content rendered inside AdminLayout            */
 /* -------------------------------------------------------------------------- */
 function AdminDashboard() {
-
   const [users, setUsers] = useState([]);
   const [stats, setStats] = useState({
     totalUsers: 0,
@@ -260,7 +254,6 @@ function AdminDashboard() {
     const fetchDashboardData = async () => {
       try {
         if (currentUser?.role === "COLLABORATOR") {
-
           const tasksRes = await axios.get(
             "http://localhost:5001/api/tasks",
             getAuthHeader()
@@ -268,19 +261,14 @@ function AdminDashboard() {
 
           const tasks = tasksRes.data.tasks || [];
 
-          
-
           setCollabStats({
             myTasks: tasks.length,
-
             pendingTasks: tasks.filter(
               (t) => t.status !== "COMPLETED"
             ).length,
-
             completedTasks: tasks.filter(
               (t) => t.status === "COMPLETED"
             ).length,
-
             highPriorityTasks: tasks.filter(
               (t) => t.priority === "HIGH"
             ).length,
@@ -304,14 +292,9 @@ function AdminDashboard() {
             ),
           ]);
 
-        
-
         const tasks = tasksRes.data.tasks || [];
 
-        
-
         if (currentUser?.role === "PROJECT_MANAGER") {
-
           const myProjects = (projectsRes.data.projects || []).filter(
             (p) => p.createdById === currentUser.id
           );
@@ -336,10 +319,8 @@ function AdminDashboard() {
               (t) => t.status === "COMPLETED"
             ).length,
           });
-
         }
 
-        
         setUsers(usersRes.data.users || []);
         setStats({
           totalUsers: usersRes.data.count || 0,
@@ -355,7 +336,6 @@ function AdminDashboard() {
         setProjects(
           (projectsRes.data.projects || []).slice(0, 5)
         );
-
       } catch (error) {
         console.log(error);
       }
@@ -364,154 +344,148 @@ function AdminDashboard() {
     fetchDashboardData();
   }, []);
 
-
   if (role === "PROJECT_MANAGER") {
-  return (
-    <div className="p-4 sm:p-6 lg:p-8">
+    return (
+      <div className="p-4 sm:p-6 lg:p-8 space-y-8 select-none">
+        <header>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-purple-100/50 text-[#7C3AED] border border-purple-200/40">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#7C3AED] animate-pulse" />
+            Project Manager
+          </span>
+          <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-slate-800">
+            Welcome Back, {currentUser?.name}
+          </h1>
+          <p className="text-sm text-slate-500/80 mt-1">
+            Manage your projects and monitor team progress.
+          </p>
+        </header>
 
-      <header className="mb-6 sm:mb-8">
-        <p className="text-sm font-medium text-indigo-600">
-          Project Manager
-        </p>
+        <section>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
+            <StatCard
+              label="My Projects"
+              value={pmStats.myProjects}
+              icon="projects"
+              bg="bg-violet-100/50"
+              text="text-violet-600"
+              accent="from-violet-500 to-violet-600"
+            />
 
-        <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-          Welcome Back, {currentUser?.name}
-        </h1>
+            <StatCard
+              label="My Tasks"
+              value={pmStats.myTasks}
+              icon="progress"
+              bg="bg-indigo-100/50"
+              text="text-indigo-600"
+              accent="from-indigo-500 to-indigo-600"
+            />
 
-        <p className="mt-1 text-sm text-slate-500 sm:text-base">
-          Manage your projects and monitor team progress.
-        </p>
-      </header>
+            <StatCard
+              label="Pending Tasks"
+              value={pmStats.pendingTasks}
+              icon="progress"
+              bg="bg-amber-100/50"
+              text="text-amber-600"
+              accent="from-amber-500 to-orange-500"
+            />
 
-      <section>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-
-          <StatCard
-            label="My Projects"
-            value={pmStats.myProjects}
-            icon="projects"
-            bg="bg-violet-50"
-            text="text-violet-600"
-            accent="from-violet-500 to-violet-600"
-          />
-
-          <StatCard
-            label="My Tasks"
-            value={pmStats.myTasks}
-            icon="progress"
-            bg="bg-indigo-50"
-            text="text-indigo-600"
-            accent="from-indigo-500 to-indigo-600"
-          />
-
-          <StatCard
-            label="Pending Tasks"
-            value={pmStats.pendingTasks}
-            icon="progress"
-            bg="bg-amber-50"
-            text="text-amber-600"
-            accent="from-amber-500 to-orange-500"
-          />
-
-          <StatCard
-            label="Completed Tasks"
-            value={pmStats.completedTasks}
-            icon="completed"
-            bg="bg-emerald-50"
-            text="text-emerald-600"
-            accent="from-emerald-500 to-emerald-600"
-          />
-
-        </div>
-      </section>
-
-    </div>
-  );
-}
+            <StatCard
+              label="Completed Tasks"
+              value={pmStats.completedTasks}
+              icon="completed"
+              bg="bg-emerald-100/50"
+              text="text-emerald-600"
+              accent="from-emerald-500 to-emerald-600"
+            />
+          </div>
+        </section>
+      </div>
+    );
+  }
+  
   if (role === "COLLABORATOR") {
+    return (
+      <div className="p-4 sm:p-6 lg:p-8 space-y-8 select-none">
+        <header>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-purple-100/50 text-[#7C3AED] border border-purple-200/40">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#7C3AED] animate-pulse" />
+            Collaborator
+          </span>
+          <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-slate-800">
+            Welcome Back, {currentUser?.name}
+          </h1>
+          <p className="text-sm text-slate-500/80 mt-1">
+            View and update your assigned tasks.
+          </p>
+        </header>
+
+        <section>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
+            <StatCard
+              label="My Tasks"
+              value={collabStats.myTasks}
+              icon="projects"
+              bg="bg-indigo-100/50"
+              text="text-indigo-600"
+              accent="from-indigo-500 to-indigo-600"
+            />
+
+            <StatCard
+              label="Pending Tasks"
+              value={collabStats.pendingTasks}
+              icon="progress"
+              bg="bg-amber-100/50"
+              text="text-amber-600"
+              accent="from-amber-500 to-orange-500"
+            />
+
+            <StatCard
+              label="Completed Tasks"
+              value={collabStats.completedTasks}
+              icon="completed"
+              bg="bg-emerald-100/50"
+              text="text-emerald-600"
+              accent="from-emerald-500 to-emerald-600"
+            />
+
+            <StatCard
+              label="High Priority"
+              value={collabStats.highPriorityTasks}
+              icon="users"
+              bg="bg-red-100/50"
+              text="text-red-600"
+              accent="from-red-500 to-red-600"
+            />
+          </div>
+        </section>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-4 sm:p-6 lg:p-8">
-
-      <header className="mb-6 sm:mb-8">
-        <p className="text-sm font-medium text-indigo-600">
-          Collaborator
-        </p>
-
-        <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-          Welcome Back, {currentUser?.name}
-        </h1>
-
-        <p className="mt-1 text-sm text-slate-500 sm:text-base">
-          View and update your assigned tasks.
-        </p>
-      </header>
-
-      <section>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-
-          <StatCard
-            label="My Tasks"
-            value={collabStats.myTasks}
-            icon="projects"
-            bg="bg-indigo-50"
-            text="text-indigo-600"
-            accent="from-indigo-500 to-indigo-600"
-          />
-
-          <StatCard
-            label="Pending Tasks"
-            value={collabStats.pendingTasks}
-            icon="progress"
-            bg="bg-amber-50"
-            text="text-amber-600"
-            accent="from-amber-500 to-orange-500"
-          />
-
-          <StatCard
-            label="Completed Tasks"
-            value={collabStats.completedTasks}
-            icon="completed"
-            bg="bg-emerald-50"
-            text="text-emerald-600"
-            accent="from-emerald-500 to-emerald-600"
-          />
-
-          <StatCard
-            label="High Priority"
-            value={collabStats.highPriorityTasks}
-            icon="users"
-            bg="bg-red-50"
-            text="text-red-600"
-            accent="from-red-500 to-red-600"
-          />
-
-        </div>
-      </section>
-
-    </div>
-  );
-}
-  return (
-    <div className="p-4 sm:p-6 lg:p-8">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-8 select-none">
       {/* Page header */}
-      <header className="mb-6 sm:mb-8">
-        <p className="text-sm font-medium text-indigo-600">Overview</p>
-        <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+      <header>
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-purple-100/50 text-[#7C3AED] border border-purple-200/40">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#7C3AED] animate-pulse" />
+          Overview
+        </span>
+        <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-slate-800">
           Welcome Back, {currentUser?.name}
         </h1>
-        <p className="mt-1 text-sm text-slate-500 sm:text-base">
+        <p className="text-sm text-slate-500/80 mt-1">
           Here&apos;s what&apos;s happening across your task management workspace today.
         </p>
       </header>
 
       {/* Stats overview */}
-      <section aria-label="Dashboard statistics" className="mb-6 sm:mb-8">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section aria-label="Dashboard statistics">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard
             label="Total Users"
             value={stats.totalUsers}
             icon="users"
-            bg="bg-indigo-50"
+            bg="bg-indigo-100/50"
             text="text-indigo-600"
             accent="from-indigo-500 to-indigo-600"
           />
@@ -520,7 +494,7 @@ function AdminDashboard() {
             label="Total Projects"
             value={stats.totalProjects}
             icon="projects"
-            bg="bg-violet-50"
+            bg="bg-violet-100/50"
             text="text-violet-600"
             accent="from-violet-500 to-violet-600"
           />
@@ -529,7 +503,7 @@ function AdminDashboard() {
             label="Tasks In Progress"
             value={stats.inProgressTasks}
             icon="progress"
-            bg="bg-amber-50"
+            bg="bg-amber-100/50"
             text="text-amber-600"
             accent="from-amber-500 to-orange-500"
           />
@@ -538,31 +512,24 @@ function AdminDashboard() {
             label="Completed Tasks"
             value={stats.completedTasks}
             icon="completed"
-            bg="bg-emerald-50"
+            bg="bg-emerald-100/50"
             text="text-emerald-600"
             accent="from-emerald-500 to-emerald-600"
           />
         </div>
       </section>
 
-      {/* Recent projects — full width */}
-      <div className="mb-6 sm:mb-8">
-        <RecentProjects
-          projects={projects}
-          navigate={navigate}
-        />
-      </div>
+      {/* Recent projects */}
+      <RecentProjects
+        projects={projects}
+        navigate={navigate}
+      />
 
-      {/* Team + Activity — two-column on large screens */}
-      <div className="grid grid-cols-1 gap-6">
-        <TeamMembers users={users} />
-
-        {/* Activity Timeline
-<div className="bg-white rounded-2xl border p-6">
- ...
-</div>
-*/}
-      </div>
+      {/* Team */}
+      <TeamMembers
+        users={users}
+        navigate={navigate}
+      />
     </div>
   );
 }

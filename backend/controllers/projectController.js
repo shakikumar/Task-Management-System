@@ -6,13 +6,22 @@
 // ==============================
 
 const prisma = require('../config/prisma');
+const {
+  sendProjectAssignmentEmail
+} = require("../services/mailerService");
 
 // ── CREATE PROJECT ───────────────────────────────────────────────────────────
 // POST /api/projects
 const createProject = async (req, res) => {
+  if (req.user.role !== "PROJECT_MANAGER") {
+    return res.status(403).json({
+      success: false,
+      message: "Only Project Managers can create projects"
+    });
+  }
   try {
     const { name, description, status, ownerId } = req.body;
-    
+
     console.log("STATUS RECEIVED:", status);
 
     // Name is required
@@ -46,6 +55,26 @@ const createProject = async (req, res) => {
       }
     });
 
+    if (ownerId && ownerId !== req.user.id) {
+
+      const projectManager =
+        await prisma.user.findUnique({
+          where: { id: ownerId }
+        });
+
+      if (projectManager?.email) {
+
+        await sendProjectAssignmentEmail(
+          projectManager.email,
+          newProject.name
+        );
+
+        console.log(
+          `Project Assignment Email sent to ${projectManager.email}`
+        );
+      }
+    }
+
     return res.status(201).json({
       success: true,
       message: 'Project created successfully',
@@ -67,32 +96,67 @@ const getAllProjects = async (req, res) => {
   try {
     let whereClause = {};
 
-if (req.user.role === "PROJECT_MANAGER") {
-  whereClause = {
-    createdById: req.user.id
-  };
-}
-    const projects = await prisma.project.findMany({
-  where: whereClause,
-
-  include: {
-    createdBy: {
-      select: { id: true, name: true, email: true, role: true }
-    },
-    _count: {
-      select: { tasks: true }
+    if (req.user.role === "PROJECT_MANAGER") {
+      whereClause = {
+        createdById: req.user.id
+      };
     }
-  },
+    const projects = await prisma.project.findMany({
+      where: whereClause,
 
-  orderBy: {
-    createdAt: 'desc'
-  }
-});
+      include: {
+        createdBy: {
+          select: { id: true, name: true, email: true, role: true }
+        },
+
+        tasks: {
+          select: {
+            id: true,
+            status: true,
+            assignedUserId: true
+          }
+        }
+      },
+
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+    const projectsWithStats = projects.map(project => {
+
+      const totalTasks = project.tasks.length;
+
+      const completedTasks = project.tasks.filter(
+        task => task.status === "COMPLETED"
+      ).length;
+
+      const progress =
+        totalTasks === 0
+          ? 0
+          : Math.round(
+            (completedTasks / totalTasks) * 100
+          );
+
+      const membersCount =
+        new Set(
+          project.tasks.map(
+            task => task.assignedUserId
+          )
+        ).size;
+
+      return {
+        ...project,
+        totalTasks,
+        completedTasks,
+        progress,
+        membersCount
+      };
+    });
 
     return res.status(200).json({
       success: true,
       count: projects.length,
-      projects: projects
+      projects: projectsWithStats
     });
 
   } catch (error) {
@@ -162,7 +226,9 @@ const getProjectById = async (req, res) => {
 const updateProject = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, description } = req.body;
+    const { name, description, status } = req.body;
+
+
 
     // Check project exists
     const existingProject = await prisma.project.findUnique({
@@ -173,6 +239,17 @@ const updateProject = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: 'Project not found'
+      });
+    }
+
+    if (
+      status !== undefined &&
+      req.user.role !== "PROJECT_MANAGER"
+    ) {
+      return res.status(403).json({
+        success: false,
+        message:
+          "Only Project Managers can change project status"
       });
     }
 
@@ -204,6 +281,9 @@ const updateProject = async (req, res) => {
     const updateData = {};
     if (name !== undefined) updateData.name = name.trim();
     if (description !== undefined) updateData.description = description?.trim();
+
+    if (status !== undefined)
+      updateData.status = status;
 
     const updatedProject = await prisma.project.update({
       where: { id: id },
@@ -247,6 +327,14 @@ const deleteProject = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: 'Project not found'
+      });
+    }
+
+    if (req.user.role !== "PROJECT_MANAGER") {
+      return res.status(403).json({
+        success: false,
+        message:
+          "Only Project Managers can delete projects"
       });
     }
 

@@ -1,4 +1,8 @@
 const prisma = require('../config/prisma');
+const { getIO } = require('../sockets/socketServer');
+const {
+  sendTaskAssignmentEmail
+} = require("./mailerService");
 
 class AppError extends Error {
   constructor(message, statusCode) {
@@ -55,6 +59,28 @@ const createTask = async (data) => {
     }
   });
 
+  const notification = await prisma.notification.create({
+    data: {
+      userId: assignedUserId,
+      message: `You have been assigned task: ${newTask.title}`
+    }
+  });
+
+  getIO().to(assignedUserId).emit(
+    "newNotification",
+    notification
+  );
+
+  try {
+  await sendTaskAssignmentEmail(
+    newTask.assignedUser.email,
+    newTask.title,
+    newTask.project.name
+  );
+} catch (err) {
+  console.log("Task assignment email failed:", err);
+}
+
   return newTask;
 };
 
@@ -92,19 +118,19 @@ const getAllTasks = async (filters, user) => {
     where.assignedUserId = filters.assignedUserId;
   }
   if (user.role === "PROJECT_MANAGER") {
-  const myProjects = await prisma.project.findMany({
-    where: {
-      createdById: user.id
-    },
-    select: {
-      id: true
-    }
-  });
+    const myProjects = await prisma.project.findMany({
+      where: {
+        createdById: user.id
+      },
+      select: {
+        id: true
+      }
+    });
 
-  where.projectId = {
-    in: myProjects.map(project => project.id)
-  };
-}
+    where.projectId = {
+      in: myProjects.map(project => project.id)
+    };
+  }
 
   // ---- FILTER 5: Search by title (NEW!) ----
   // Example: ?search=login
@@ -307,6 +333,20 @@ const updateTask = async (id, updateData, user) => {
       }
     }
   });
+  if (updateData.status) {
+
+    const notification = await prisma.notification.create({
+      data: {
+        userId: updatedTask.assignedUserId,
+        message: `Task status changed to ${updatedTask.status}`
+      }
+    });
+
+    getIO().to(updatedTask.assignedUserId).emit(
+      "newNotification",
+      notification
+    );
+  }
 
   return updatedTask;
 };
@@ -367,6 +407,26 @@ const assignTask = async (id, assignedUserId) => {
     }
   });
 
+  const notification = await prisma.notification.create({
+    data: {
+      userId: assignedUserId,
+      message: `You have been assigned task: ${updatedTask.title}`
+    }
+  });
+
+  getIO().to(assignedUserId).emit(
+    "newNotification",
+    notification
+  );
+  try {
+  await sendTaskAssignmentEmail(
+  updatedTask.assignedUser.email,
+  updatedTask.title,
+  updatedTask.project.name
+);
+} catch (err) {
+  console.log("Task assignment email failed:", err);
+}
   return updatedTask;
 };
 

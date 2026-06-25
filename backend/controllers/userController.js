@@ -40,7 +40,7 @@ const createUserOnboarding = async (req, res) => {
     try {
         // 1. Structural integrity check: Validate uniqueness of the incoming email identifier
         const existingUser = await prisma.user.findUnique({ where: { email } });
-        if (existingUser) { 
+        if (existingUser) {
             return res.status(400).json({ error: 'User with this email already exists.' });
         }
 
@@ -63,9 +63,13 @@ const createUserOnboarding = async (req, res) => {
 
         // 5. Trigger automated asynchronous background email notification routine
         try {
-            sendOnboardingEmail(newUser.email, temporaryPassword);
+            console.log("EMAIL FUNCTION START");
+            await sendOnboardingEmail(
+                newUser.email,
+                temporaryPassword
+            );
         } catch (mailError) {
-            console.log('⚠️ Mail service credentials unconfigured or skipped during local testing execution.');
+            console.log(mailError);
         }
 
         // Return the authenticated database user response entity layout directly to the client interface context
