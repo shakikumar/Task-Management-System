@@ -46,9 +46,12 @@ app.use(helmet());
 
 // This allows the frontend (React on port 3000) to send requests here
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: [
+    "http://localhost:5173",
+    "https://tasknova5.netlify.app"
+  ],
   credentials: true
-}));
+}))
 
 // This tells Express to understand JSON data sent from the frontend
 // Without this, req.body would be empty when frontend sends data
