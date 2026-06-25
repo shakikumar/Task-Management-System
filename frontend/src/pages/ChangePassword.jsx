@@ -34,10 +34,15 @@ function ChangePassword() {
       alert("Passwords do not match");
       return;
     }
-    if (password.length < 8) {
-      alert("Password must be at least 8 characters");
-      return;
-    }
+    const passwordRegex =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
+
+if (!passwordRegex.test(password)) {
+  alert(
+    "Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number and one special character."
+  );
+  return;
+}
 
     try {
       const token = localStorage.getItem("token");
