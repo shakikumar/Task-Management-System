@@ -50,6 +50,11 @@ COPY --from=builder /app/controllers          ./controllers
 COPY --from=builder /app/middleware           ./middleware
 COPY --from=builder /app/routes               ./routes
 COPY --from=builder /app/prisma               ./prisma
+COPY --from=builder /app/services             ./services
+COPY --from=builder /app/validators           ./validators
+COPY --from=builder /app/jobs                 ./jobs
+COPY --from=builder /app/sockets              ./sockets
+COPY --from=builder /app/uploads              ./uploads
 COPY --from=builder /app/server.js            ./server.js
 
 # Transfer ownership to the non-root user

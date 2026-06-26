@@ -46,7 +46,7 @@ app.use(helmet());
 
 // This allows the frontend (React on port 3000) to send requests here
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
   credentials: true
 }));
 
