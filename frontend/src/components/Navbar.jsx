@@ -118,7 +118,7 @@ function Navbar({
       socket.disconnect();
     };
   }, []);
-  const loadNotifications = async () => {
+  async function loadNotifications() {
     try {
       const res = await getNotifications();
 

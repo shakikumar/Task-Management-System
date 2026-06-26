@@ -42,7 +42,7 @@ const TaskDetailsModal = ({ task, onClose }) => {
     }
   }, [task]);
 
-  const fetchAttachments = async () => {
+  async function fetchAttachments() {
     try {
       const res = await axios.get(
         `http://localhost:5001/api/attachments/task/${task.id}`,
