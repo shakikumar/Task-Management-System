@@ -1,4 +1,4 @@
-﻿# ER Diagram — Task Management System
+# ER Diagram — Task Management System
 
 Generated exclusively from `backend/prisma/schema.prisma`.
 
@@ -8,60 +8,79 @@ Generated exclusively from `backend/prisma/schema.prisma`.
 
 ## Entity Relationship Diagram
 
-```
-+-------------------+          +-------------------+
-|       USER        |          |      PROJECT      |
-+-------------------+          +-------------------+
-| PK  id (UUID)     |1       N | PK  id (UUID)     |
-|     name          +----------+     name          |
-|     email (UNIQUE)|createdById     description   |
-|     password      |          |     status        |
-|     role (enum)   |          |     createdById FK|
-|     mustReset     |          |     createdAt     |
-|     isActive      |          |     updatedAt     |
-|     createdAt     |          +--------+----------+
-|     updatedAt     |                   |
-+---+---------------+                 1 |
-    |   |   |   |                       |
-    |   |   |   |                     N |
-    |   |   |   |          +------------+----------+
-    |   |   |   |          |         TASK          |
-    |   |   |   |          +---+-------------------+
-    |   |   |   |          | PK  id (UUID)         |
-    |   |   |   +----------+     title             |
-    |   |   |  assignedUserId    description        |
-    |   |   |     (FK->User)     status (enum)     |
-    |   |   |                    priority (enum)   |
-    |   |   |                    dueDate (nullable) |
-    |   |   |                    createdAt         |
-    |   |   |                    updatedAt         |
-    |   |   |                    projectId FK      |
-    |   |   |                    assignedUserId FK |
-    |   |   |                +-------+------+------+
-    |   |   |                |              |
-    |   |   |              N |            N |
-    |   |   |    +-----------+--+  +--------+------+
-    |   |   |    |   COMMENT    |  |  ATTACHMENT   |
-    |   |   |    +--------------+  +---------------+
-    |   |   |    | PK id (UUID) |  | PK id (UUID)  |
-    |   +---+--> |    content   |  |    fileName   |
-    |  userId FK |    taskId FK |  |    fileUrl    |
-    |            |    userId FK |  |    taskId FK  |
-    |            |    createdAt |  |    userId FK  |
-    |            +--------------+  |    createdAt  |
-    |                              +---------------+
-    |
-    |  1    N
-    +--------+------------------+
-             |   NOTIFICATION   |
-             +------------------+
-             | PK  id (UUID)    |
-             |     message      |
-             |     isRead       |
-             |     userId FK    |
-             |     reminderType |
-             |     createdAt    |
-             +------------------+
+```mermaid
+erDiagram
+    USER ||--o{ PROJECT : "creates (ProjectOwner)"
+    USER ||--o{ TASK : "assigned to (TaskAssignees)"
+    USER ||--o{ NOTIFICATION : "receives"
+    USER ||--o{ COMMENT : "writes"
+    USER ||--o{ ATTACHMENT : "uploads"
+    
+    PROJECT ||--o{ TASK : "contains"
+    
+    TASK ||--o{ COMMENT : "has"
+    TASK ||--o{ ATTACHMENT : "has"
+
+    USER {
+        String id PK
+        String name
+        String email UK
+        String password
+        Role role
+        Boolean mustResetPassword
+        Boolean isActive
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    PROJECT {
+        String id PK
+        String name
+        String description
+        ProjectStatus status
+        String createdById FK
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    TASK {
+        String id PK
+        String title
+        String description
+        TaskStatus status
+        Priority priority
+        DateTime dueDate "nullable"
+        String projectId FK
+        String assignedUserId FK
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    COMMENT {
+        String id PK
+        String content
+        String taskId FK
+        String userId FK
+        DateTime createdAt
+    }
+
+    ATTACHMENT {
+        String id PK
+        String fileName
+        String fileUrl
+        String taskId FK
+        String userId FK
+        DateTime createdAt
+    }
+
+    NOTIFICATION {
+        String id PK
+        String message
+        Boolean isRead
+        String userId FK
+        String reminderType "nullable"
+        DateTime createdAt
+    }
 ```
 
 ---
