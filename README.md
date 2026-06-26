@@ -93,8 +93,13 @@ The application follows a modern client-server architecture using **React**, **N
 - bcrypt
 - Socket.IO
 - Multer
+- Brevo Email API
 - Supabase Storage
-- Nodemailer
+- PostgreSQL
+
+## Database
+- Supabase PostgreSQL
+- Supabase Storage
 
 ## DevOps
 
