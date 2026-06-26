@@ -1,12 +1,13 @@
 import { useState } from "react";
 import axios from "axios";
-import { KeyRound, CheckCircle2, XCircle, RefreshCw } from "lucide-react";
+import { KeyRound, CheckCircle2, XCircle, RefreshCw, Loader2 } from "lucide-react";
 import { API_BASE_URL } from "../config";
 
 function ChangePassword() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const hasUpperCase = /[A-Z]/.test(password);
   const hasLowerCase = /[a-z]/.test(password);
@@ -36,16 +37,17 @@ function ChangePassword() {
       return;
     }
     const passwordRegex =
-  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
 
-if (!passwordRegex.test(password)) {
-  alert(
-    "Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number and one special character."
-  );
-  return;
-}
+    if (!passwordRegex.test(password)) {
+      alert(
+        "Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number and one special character."
+      );
+      return;
+    }
 
     try {
+      setIsSubmitting(true);
       const token = localStorage.getItem("token");
 
       await axios.put(
@@ -77,6 +79,8 @@ if (!passwordRegex.test(password)) {
         error.response?.data?.message ||
         "Failed to update password"
       );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -105,7 +109,8 @@ if (!passwordRegex.test(password)) {
             <input
               type="password"
               placeholder="Current Password"
-              className="w-full bg-white border border-purple-100 rounded-xl px-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all"
+              disabled={isSubmitting}
+              className="w-full bg-white border border-purple-100 rounded-xl px-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
             />
@@ -118,7 +123,8 @@ if (!passwordRegex.test(password)) {
             <input
               type="password"
               placeholder="New Password"
-              className="w-full bg-white border border-purple-100 rounded-xl px-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all"
+              disabled={isSubmitting}
+              className="w-full bg-white border border-purple-100 rounded-xl px-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
@@ -131,7 +137,8 @@ if (!passwordRegex.test(password)) {
             <input
               type="password"
               placeholder="Confirm Password"
-              className="w-full bg-white border border-purple-100 rounded-xl px-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all"
+              disabled={isSubmitting}
+              className="w-full bg-white border border-purple-100 rounded-xl px-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
@@ -199,10 +206,20 @@ if (!passwordRegex.test(password)) {
           <div className="pt-3">
             <button
               onClick={handleChangePassword}
-              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-3 text-sm font-semibold text-white hover:from-violet-500 hover:to-indigo-500 hover:shadow-[0_8px_20px_rgba(124,58,237,0.25)] transition-all duration-200 cursor-pointer"
+              disabled={isSubmitting}
+              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-3 text-sm font-semibold text-white hover:from-violet-500 hover:to-indigo-500 hover:shadow-[0_8px_20px_rgba(124,58,237,0.25)] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <RefreshCw size={15} />
-              Change Password
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4.5 w-4.5 animate-spin" />
+                  Updating Password...
+                </>
+              ) : (
+                <>
+                  <RefreshCw size={15} />
+                  Change Password
+                </>
+              )}
             </button>
           </div>
         </div>

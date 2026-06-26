@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { API_BASE_URL } from "../config";
 import FileDropZone from "./FileDropZone";
-import { Edit, Save, Trash2, Send, Paperclip, MessageSquare } from "lucide-react";
+import { Edit, Save, Trash2, Send, Paperclip, MessageSquare, Loader2 } from "lucide-react";
 
 const TaskDetailsModal = ({ task, onClose }) => {
   const [commentText, setCommentText] = useState("");
@@ -14,6 +14,7 @@ const TaskDetailsModal = ({ task, onClose }) => {
   const [attachments, setAttachments] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const currentUser = JSON.parse(
     localStorage.getItem("user")
@@ -72,6 +73,7 @@ const TaskDetailsModal = ({ task, onClose }) => {
     if (!commentText.trim()) return;
 
     try {
+      setIsSubmitting(true);
       const res = await axios.post(
         `${API_BASE_URL}/api/comments/task/${task.id}`,
         { content: commentText },
@@ -86,6 +88,8 @@ const TaskDetailsModal = ({ task, onClose }) => {
       setCommentText("");
     } catch (error) {
       console.log("Failed to add comment:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -95,6 +99,7 @@ const TaskDetailsModal = ({ task, onClose }) => {
 
       if (!confirmDelete) return;
 
+      setIsSubmitting(true);
       await axios.delete(
         `${API_BASE_URL}/api/comments/${commentId}`,
         {
@@ -107,6 +112,8 @@ const TaskDetailsModal = ({ task, onClose }) => {
       setComments(comments.filter((c) => c.id !== commentId));
     } catch (error) {
       console.log("Failed to delete comment:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -177,6 +184,7 @@ const TaskDetailsModal = ({ task, onClose }) => {
 
   const handleDeleteAttachment = async (attachmentId) => {
     try {
+      setIsSubmitting(true);
       await axios.delete(
         `${API_BASE_URL}/api/attachments/${attachmentId}`,
         {
@@ -195,6 +203,8 @@ const TaskDetailsModal = ({ task, onClose }) => {
     } catch (error) {
       console.log(error);
       alert("Delete failed");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -310,12 +320,11 @@ const TaskDetailsModal = ({ task, onClose }) => {
                           ? new Date(c.createdAt).toLocaleString()
                           : "Just now"}
                       </p>
-                    </div>
-
-                    {c.user?.id === currentUser?.id && (
+                    </div>                     {c.user?.id === currentUser?.id && (
                       <button
                         onClick={() => handleDeleteComment(c.id)}
-                        className="text-red-500 hover:text-red-700 text-[10px] font-bold hover:bg-red-50 px-2 py-1 rounded transition-all cursor-pointer shrink-0"
+                        disabled={isSubmitting}
+                        className="text-red-500 hover:text-red-700 text-[10px] font-bold hover:bg-red-50 px-2 py-1 rounded transition-all cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Delete
                       </button>
@@ -331,17 +340,28 @@ const TaskDetailsModal = ({ task, onClose }) => {
             <div className="flex gap-2">
               <input
                 value={commentText}
+                disabled={isSubmitting}
                 onChange={(e) => setCommentText(e.target.value)}
                 placeholder="Write a comment..."
-                className="flex-1 bg-white border border-purple-100 rounded-xl px-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all"
+                className="flex-1 bg-white border border-purple-100 rounded-xl px-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               />
 
               <button
                 onClick={handleAddComment}
-                className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-semibold px-4 py-2.5 rounded-xl text-sm hover:from-violet-500 hover:to-indigo-500 hover:shadow-[0_8px_20px_rgba(124,58,237,0.25)] transition-all cursor-pointer shrink-0 flex items-center gap-1.5"
+                disabled={isSubmitting}
+                className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-semibold px-4 py-2.5 rounded-xl text-sm hover:from-violet-500 hover:to-indigo-500 hover:shadow-[0_8px_20px_rgba(124,58,237,0.25)] transition-all cursor-pointer shrink-0 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Send size={13} />
-                Add
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    Adding...
+                  </>
+                ) : (
+                  <>
+                    <Send size={13} />
+                    Add
+                  </>
+                )}
               </button>
             </div>
           )}
@@ -356,6 +376,7 @@ const TaskDetailsModal = ({ task, onClose }) => {
 
           <FileDropZone
             onFileSelect={handleFileUpload}
+            disabled={isSubmitting || uploading}
           />
 
           {/* Upload Progress Bar */}
@@ -407,7 +428,8 @@ const TaskDetailsModal = ({ task, onClose }) => {
 
                   <button
                     onClick={() => handleDeleteAttachment(file.id)}
-                    className="text-red-500 hover:text-red-700 text-[10px] font-bold hover:bg-red-50 px-2.5 py-1.5 rounded-lg transition cursor-pointer shrink-0"
+                    disabled={isSubmitting}
+                    className="text-red-500 hover:text-red-700 text-[10px] font-bold hover:bg-red-50 px-2.5 py-1.5 rounded-lg transition cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Remove
                   </button>

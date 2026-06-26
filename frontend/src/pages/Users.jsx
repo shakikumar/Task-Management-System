@@ -4,7 +4,8 @@ import { API_BASE_URL } from "../config";
 import {
   Users as UsersIcon,
   Briefcase,
-  UserRound
+  UserRound,
+  Loader2
 } from "lucide-react";
 
 /* -------------------------------------------------------------------------- */
@@ -79,6 +80,7 @@ function Users() {
   const [roleFilter, setRoleFilter] = useState("All Roles");
   const [users, setUsers] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -148,6 +150,7 @@ function Users() {
 
     if (!confirmDelete) return;
     try {
+      setIsSubmitting(true);
       const token = localStorage.getItem("token");
 
       await axios.delete(
@@ -164,11 +167,14 @@ function Users() {
     } catch (error) {
       console.error(error);
       alert("Failed to delete user");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleRoleChange = async (id, role) => {
     try {
+      setIsSubmitting(true);
 
       const token = localStorage.getItem("token");
 
@@ -191,6 +197,8 @@ function Users() {
     } catch (error) {
       console.error(error);
       alert("Failed to update role");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -302,8 +310,9 @@ function Users() {
                     <button
                       type="button"
                       onClick={() => handleDelete(u.id)}
+                      disabled={isSubmitting}
                       aria-label={`Delete ${u.name}`}
-                      className="rounded-xl px-3.5 py-1.5 text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 border border-red-100/40 transition-colors cursor-pointer"
+                      className="rounded-xl px-3.5 py-1.5 text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 border border-red-100/40 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Delete
                     </button>
@@ -323,25 +332,28 @@ function Users() {
             <h2 className="text-2xl font-black text-slate-800 mb-6">Add User</h2>
 
             <input
-              className="w-full mb-4 bg-white border border-purple-100 rounded-xl px-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all"
+              className="w-full mb-4 bg-white border border-purple-100 rounded-xl px-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               placeholder="Name"
               value={formData.name}
+              disabled={isSubmitting}
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
               }
             />
             <input
-              className="w-full mb-4 bg-white border border-purple-100 rounded-xl px-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all"
+              className="w-full mb-4 bg-white border border-purple-100 rounded-xl px-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               placeholder="Email"
               value={formData.email}
+              disabled={isSubmitting}
               onChange={(e) =>
                 setFormData({ ...formData, email: e.target.value })
               }
             />
 
             <select
-              className="w-full mb-6 bg-white border border-purple-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all cursor-pointer"
+              className="w-full mb-6 bg-white border border-purple-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               value={formData.role}
+              disabled={isSubmitting}
               onChange={(e) =>
                 setFormData({ ...formData, role: e.target.value })
               }
@@ -362,14 +374,17 @@ function Users() {
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2.5 border border-slate-200 text-slate-650 font-semibold rounded-xl hover:bg-slate-50 transition-all duration-200 cursor-pointer"
+                disabled={isSubmitting}
+                className="px-4 py-2.5 border border-slate-200 text-slate-650 font-semibold rounded-xl hover:bg-slate-50 transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
 
               <button
+                disabled={isSubmitting}
                 onClick={async () => {
                   try {
+                    setIsSubmitting(true);
                     const token = localStorage.getItem("token");
 
                     const response = await axios.post(
@@ -400,11 +415,20 @@ function Users() {
                   } catch (error) {
                     console.error(error);
                     alert("Failed to create user");
+                  } finally {
+                    setIsSubmitting(false);
                   }
                 }}
-                className="px-4 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-semibold rounded-xl hover:shadow-[0_6px_16px_rgba(124,58,237,0.25)] transition-all duration-200 cursor-pointer"
+                className="px-4 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-semibold rounded-xl hover:shadow-[0_6px_16px_rgba(124,58,237,0.25)] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
               >
-                Save
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  "Save"
+                )}
               </button>
             </div>
 
