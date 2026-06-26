@@ -326,7 +326,7 @@ const updateTask = async (id, updateData, user) => {
     data: dataToUpdate,
     include: {
       project: {
-        select: { id: true, name: true }
+        select: { id: true, name: true, createdById: true }
       },
       assignedUser: {
         select: { id: true, name: true, email: true, role: true }
@@ -334,18 +334,24 @@ const updateTask = async (id, updateData, user) => {
     }
   });
   if (updateData.status) {
+    const isUpdaterAssignee = updatedTask.assignedUserId === user.id;
+    const recipientId = isUpdaterAssignee 
+      ? updatedTask.project.createdById 
+      : updatedTask.assignedUserId;
 
-    const notification = await prisma.notification.create({
-      data: {
-        userId: updatedTask.assignedUserId,
-        message: `Task status changed to ${updatedTask.status}`
-      }
-    });
+    if (recipientId && recipientId !== user.id) {
+      const notification = await prisma.notification.create({
+        data: {
+          userId: recipientId,
+          message: `Task "${updatedTask.title}" status changed to ${updatedTask.status} by ${user.name}`
+        }
+      });
 
-    getIO().to(updatedTask.assignedUserId).emit(
-      "newNotification",
-      notification
-    );
+      getIO().to(recipientId).emit(
+        "newNotification",
+        notification
+      );
+    }
   }
 
   return updatedTask;
