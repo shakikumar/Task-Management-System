@@ -34,14 +34,6 @@ const TaskDetailsModal = ({ task, onClose }) => {
       console.log("Failed to load comments:", error);
     }
   };
-
-  useEffect(() => {
-    if (task) {
-      fetchComments();
-      fetchAttachments();
-    }
-  }, [task]);
-
   const fetchAttachments = async () => {
     try {
       const res = await axios.get(
@@ -59,6 +51,14 @@ const TaskDetailsModal = ({ task, onClose }) => {
       console.log("Failed to load attachments:", error);
     }
   };
+  useEffect(() => {
+    if (task) {
+      fetchComments();
+      fetchAttachments();
+    }
+  }, [task]);
+
+  
 
   useEffect(() => {
     if (task) {

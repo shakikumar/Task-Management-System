@@ -152,6 +152,19 @@ Authorization: Bearer <your_token>
           },
         },
 
+        // ── Attachment ────────────────────────────────────────────────────────
+        Attachment: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid', example: 'e5f6g7h8-...' },
+            fileName: { type: 'string', example: 'document.pdf' },
+            fileUrl: { type: 'string', example: 'https://supabase.co/storage/v1/object/public/attachments/example.pdf' },
+            taskId: { type: 'string', format: 'uuid', example: 'a1b2c3d4-...' },
+            userId: { type: 'string', format: 'uuid', example: 'u1v2w3x4-...' },
+            createdAt: { type: 'string', format: 'date-time' },
+          },
+        },
+
         // ── Notification ──────────────────────────────────────────────────────
         Notification: {
           type: 'object',

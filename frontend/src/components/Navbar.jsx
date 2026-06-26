@@ -91,7 +91,21 @@ function Navbar({
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
+  const loadNotifications = async () => {
+    try {
+      const res = await getNotifications();
 
+      const data = res.data.notifications || [];
+
+      setNotifications(data);
+
+      setUnreadCount(
+        data.filter((n) => !n.isRead).length
+      );
+    } catch (error) {
+      console.error("Failed to load notifications", error);
+    }
+  };
   useEffect(() => {
     loadNotifications();
 
@@ -118,21 +132,7 @@ function Navbar({
       socket.disconnect();
     };
   }, []);
-  const loadNotifications = async () => {
-    try {
-      const res = await getNotifications();
-
-      const data = res.data.notifications || [];
-
-      setNotifications(data);
-
-      setUnreadCount(
-        data.filter((n) => !n.isRead).length
-      );
-    } catch (error) {
-      console.error("Failed to load notifications", error);
-    }
-  };
+  
   return (
     <header className="sticky top-0 z-30 h-16 shrink-0 border-b border-purple-100/50 bg-white/70 backdrop-blur-md">
       <div className="flex h-full items-center gap-4 px-4 sm:px-6">
