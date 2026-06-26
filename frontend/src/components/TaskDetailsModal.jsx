@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { API_BASE_URL } from "../config";
 import FileDropZone from "./FileDropZone";
 import { Edit, Save, Trash2, Send, Paperclip, MessageSquare } from "lucide-react";
 
@@ -21,7 +22,7 @@ const TaskDetailsModal = ({ task, onClose }) => {
   const fetchComments = async () => {
     try {
       const res = await axios.get(
-        `http://localhost:5001/api/comments/task/${task.id}`,
+        `${API_BASE_URL}/api/comments/task/${task.id}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -37,7 +38,7 @@ const TaskDetailsModal = ({ task, onClose }) => {
   const fetchAttachments = async () => {
     try {
       const res = await axios.get(
-        `http://localhost:5001/api/attachments/task/${task.id}`,
+        `${API_BASE_URL}/api/attachments/task/${task.id}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -72,7 +73,7 @@ const TaskDetailsModal = ({ task, onClose }) => {
 
     try {
       const res = await axios.post(
-        `http://localhost:5001/api/comments/task/${task.id}`,
+        `${API_BASE_URL}/api/comments/task/${task.id}`,
         { content: commentText },
         {
           headers: {
@@ -95,7 +96,7 @@ const TaskDetailsModal = ({ task, onClose }) => {
       if (!confirmDelete) return;
 
       await axios.delete(
-        `http://localhost:5001/api/comments/${commentId}`,
+        `${API_BASE_URL}/api/comments/${commentId}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -112,7 +113,7 @@ const TaskDetailsModal = ({ task, onClose }) => {
   const handleSaveTask = async () => {
     try {
       await axios.put(
-        `http://localhost:5001/api/tasks/${task.id}`,
+        `${API_BASE_URL}/api/tasks/${task.id}`,
         {
           title: editTitle,
           priority: editPriority,
@@ -141,7 +142,7 @@ const TaskDetailsModal = ({ task, onClose }) => {
       formData.append("file", file);
 
       const res = await axios.post(
-        `http://localhost:5001/api/attachments/task/${task.id}`,
+        `${API_BASE_URL}/api/attachments/task/${task.id}`,
         formData,
         {
           headers: {
@@ -177,7 +178,7 @@ const TaskDetailsModal = ({ task, onClose }) => {
   const handleDeleteAttachment = async (attachmentId) => {
     try {
       await axios.delete(
-        `http://localhost:5001/api/attachments/${attachmentId}`,
+        `${API_BASE_URL}/api/attachments/${attachmentId}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,

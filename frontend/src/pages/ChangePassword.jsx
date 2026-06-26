@@ -1,6 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { KeyRound, CheckCircle2, XCircle, RefreshCw } from "lucide-react";
+import { API_BASE_URL } from "../config";
 
 function ChangePassword() {
   const [password, setPassword] = useState("");
@@ -48,7 +49,7 @@ if (!passwordRegex.test(password)) {
       const token = localStorage.getItem("token");
 
       await axios.put(
-        "http://localhost:5001/api/auth/change-password",
+        `${API_BASE_URL}/api/auth/change-password`,
         {
           currentPassword,
           newPassword: password,

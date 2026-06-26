@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import axios from "axios";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { API_BASE_URL } from "../config";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -35,7 +36,7 @@ function Login() {
 
     try {
       const { data } = await axios.post(
-  "https://task-management-system-2xa3.onrender.com/api/auth/login",
+        `${API_BASE_URL}/api/auth/login`,
         {
           email: trimmedEmail,
           password,

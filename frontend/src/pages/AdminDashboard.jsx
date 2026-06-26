@@ -5,6 +5,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../config";
 
 
 
@@ -255,7 +256,7 @@ function AdminDashboard() {
       try {
         if (currentUser?.role === "COLLABORATOR") {
           const tasksRes = await axios.get(
-            "http://localhost:5001/api/tasks",
+            `${API_BASE_URL}/api/tasks`,
             getAuthHeader()
           );
 
@@ -279,15 +280,15 @@ function AdminDashboard() {
         const [usersRes, projectsRes, tasksRes] =
           await Promise.all([
             axios.get(
-              "http://localhost:5001/api/users",
+              `${API_BASE_URL}/api/users`,
               getAuthHeader()
             ),
             axios.get(
-              "http://localhost:5001/api/projects",
+              `${API_BASE_URL}/api/projects`,
               getAuthHeader()
             ),
             axios.get(
-              "http://localhost:5001/api/tasks",
+              `${API_BASE_URL}/api/tasks`,
               getAuthHeader()
             ),
           ]);

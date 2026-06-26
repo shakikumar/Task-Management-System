@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 import {
   Briefcase,
   Clock,
@@ -40,7 +41,7 @@ function Projects() {
     const fetchProjects = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get('http://localhost:5001/api/projects', {
+        const response = await axios.get(`${API_BASE_URL}/api/projects`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (response.data.success) {
@@ -59,7 +60,7 @@ function Projects() {
         const token = localStorage.getItem('token');
 
         const response = await axios.get(
-          'http://localhost:5001/api/users',
+          `${API_BASE_URL}/api/users`,
           {
             headers: {
               Authorization: `Bearer ${token}`
@@ -117,7 +118,7 @@ function Projects() {
     try {
       const token = localStorage.getItem('token');
 
-      const response = await axios.post('http://localhost:5001/api/projects', {
+      const response = await axios.post(`${API_BASE_URL}/api/projects`, {
         name: form.name.trim(),
         description: form.description.trim(),
         status: form.status,
@@ -148,7 +149,7 @@ function Projects() {
       const token = localStorage.getItem("token");
 
       await axios.put(
-        `http://localhost:5001/api/projects/${projectId}`,
+        `${API_BASE_URL}/api/projects/${projectId}`,
         {
           status: newStatus
         },
@@ -186,7 +187,7 @@ function Projects() {
     try {
       const token = localStorage.getItem('token');
 
-      const response = await axios.delete(`http://localhost:5001/api/projects/${id}`, {
+      const response = await axios.delete(`${API_BASE_URL}/api/projects/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 

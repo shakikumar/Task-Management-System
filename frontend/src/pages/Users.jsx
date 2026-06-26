@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import axios from "axios";
+import { API_BASE_URL } from "../config";
 import {
   Users as UsersIcon,
   Briefcase,
@@ -89,7 +90,7 @@ function Users() {
       const token = localStorage.getItem("token");
 
       const response = await axios.get(
-        "http://localhost:5001/api/users",
+        `${API_BASE_URL}/api/users`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -150,7 +151,7 @@ function Users() {
       const token = localStorage.getItem("token");
 
       await axios.delete(
-        `http://localhost:5001/api/users/${id}`,
+        `${API_BASE_URL}/api/users/${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -172,7 +173,7 @@ function Users() {
       const token = localStorage.getItem("token");
 
       const response = await axios.put(
-        `http://localhost:5001/api/users/${id}`,
+        `${API_BASE_URL}/api/users/${id}`,
         {
           role
         },
@@ -372,7 +373,7 @@ function Users() {
                     const token = localStorage.getItem("token");
 
                     const response = await axios.post(
-                      "http://localhost:5001/api/users",
+                      `${API_BASE_URL}/api/users`,
                       {
                         name: formData.name,
                         email: formData.email,

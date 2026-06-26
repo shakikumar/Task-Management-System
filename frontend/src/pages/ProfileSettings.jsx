@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { UserCog, Save } from "lucide-react";
+import { API_BASE_URL } from "../config";
 
 function ProfileSettings() {
   const [name, setName] = useState("");
@@ -24,7 +25,7 @@ function ProfileSettings() {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.put(
-        "http://localhost:5001/api/users/profile",
+        `${API_BASE_URL}/api/users/profile`,
         {
           name,
           email

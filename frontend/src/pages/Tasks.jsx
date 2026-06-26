@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import TaskDetailsModal from "../components/TaskDetailsModal";
+import { API_BASE_URL } from "../config";
 
 
 
@@ -31,7 +32,7 @@ function Tasks() {
     currentUser?.role === "COLLABORATOR";
 
 
-  const API_URL = "http://localhost:5001/api/tasks";
+  const API_URL = `${API_BASE_URL}/api/tasks`;
   const getAuthHeader = () => ({
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -67,7 +68,7 @@ function Tasks() {
     const fetchProjects = async () => {
       try {
         const res = await axios.get(
-          "http://localhost:5001/api/projects",
+          `${API_BASE_URL}/api/projects`,
           getAuthHeader()
         );
 
@@ -86,7 +87,7 @@ function Tasks() {
     const fetchUsers = async () => {
       try {
         const res = await axios.get(
-          "http://localhost:5001/api/users",
+          `${API_BASE_URL}/api/users`,
           getAuthHeader()
         );
 

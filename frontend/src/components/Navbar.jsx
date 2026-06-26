@@ -5,6 +5,7 @@ import {
   markAllAsRead
 } from "../services/notificationService";
 import { io } from "socket.io-client";
+import { API_BASE_URL } from "../config";
 
 /* -------------------------------------------------------------------------- */
 /*  Icon components — inline SVGs to avoid extra dependencies                 */
@@ -109,7 +110,7 @@ function Navbar({
   useEffect(() => {
     loadNotifications();
 
-    const socket = io("http://localhost:5001");
+    const socket = io(API_BASE_URL);
 
     const currentUser = JSON.parse(
       localStorage.getItem("user")
