@@ -124,7 +124,6 @@ Task-Management-System/
 │   ├── services/
 │   ├── sockets/
 │   ├── validators/
-│   ├── uploads/
 │   ├── Dockerfile
 │   ├── package.json
 │   └── server.js
