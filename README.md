@@ -1,427 +1,448 @@
-# Task Management System
+﻿# Task Management System (TMS)
 
-<div align="center">
-
-![Node.js](https://img.shields.io/badge/Node.js-20.x-339933?style=for-the-badge&logo=node.js&logoColor=white)
-![React](https://img.shields.io/badge/React-19.x-61DAFB?style=for-the-badge&logo=react&logoColor=black)
-![Vite](https://img.shields.io/badge/Vite-8.x-646CFF?style=for-the-badge&logo=vite&logoColor=white)
-![Prisma](https://img.shields.io/badge/Prisma-7.x-2D3748?style=for-the-badge&logo=prisma&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)
-![CI](https://img.shields.io/badge/CI-GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)
-
-A full-featured, role-based **Task Management System** built as a university group project.  
-Manage projects, tasks, comments, attachments, and notifications — all with JWT-secured REST APIs.
-
-</div>
+A production-ready, full-stack Task Management System built with **Node.js + Express**, **Prisma ORM**, **Supabase PostgreSQL**, **React + Vite**, and **Socket.IO**. The platform supports role-based access control, real-time notifications, file attachments via Supabase Storage, automated email delivery, and a daily due-date reminder cron job.
 
 ---
 
 ## Table of Contents
 
+- [Project Overview](#project-overview)
+- [Features](#features)
+- [Technology Stack](#technology-stack)
 - [Architecture Overview](#architecture-overview)
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [Getting Started (Local — No Docker)](#getting-started-local--no-docker)
+- [Folder Structure](#folder-structure)
+- [Installation](#installation)
+  - [Backend Setup](#backend-setup)
+  - [Frontend Setup](#frontend-setup)
 - [Environment Variables](#environment-variables)
-- [Docker Setup](#docker-setup)
-- [API Documentation (Swagger)](#api-documentation-swagger)
+- [Running the Project](#running-the-project)
+- [Docker](#docker)
+- [Swagger API Documentation](#swagger-api-documentation)
+- [Authentication](#authentication)
+- [Role-Based Access Control (RBAC)](#role-based-access-control-rbac)
+- [Socket.IO Real-Time Notifications](#socketio-real-time-notifications)
+- [Deployment](#deployment)
 - [CI/CD Pipeline](#cicd-pipeline)
-- [Database Schema](#database-schema)
-- [User Roles](#user-roles)
-- [Team Members](#team-members)
+- [License](#license)
+
+---
+
+## Project Overview
+
+TMS is a collaborative platform that allows teams to manage projects, track tasks, attach files, and communicate via comments — all in real time. Administrators manage users; Project Managers own projects and tasks; Collaborators view and update their assigned work.
+
+---
+
+## Features
+
+| Feature | Description |
+|---|---|
+| **JWT Authentication** | Stateless Bearer-token login with configurable expiry |
+| **Role-Based Access Control** | Three roles: `ADMINISTRATOR`, `PROJECT_MANAGER`, `COLLABORATOR` |
+| **User Management** | Create, read, update, deactivate, and delete users (Admin only) |
+| **Forced Password Reset** | New accounts must change their temporary password on first login |
+| **Project Management** | CRUD projects with status tracking and progress calculation |
+| **Task Management** | CRUD tasks with filtering, sorting, pagination, and search |
+| **Task Assignment** | Assign tasks to users; inactive users cannot be assigned |
+| **Task Comments** | Project Managers and Collaborators can comment on tasks |
+| **File Attachments** | Upload PDF/PNG/JPG files (5 MB max) to Supabase Storage |
+| **Real-Time Notifications** | Socket.IO push notifications for task assignment, comments, and uploads |
+| **Email Notifications** | Onboarding, task assignment, project assignment, and due-date reminder emails |
+| **Due-Date Cron Job** | Daily 09:00 cron sends reminders for tasks due the following day |
+| **XSS Protection** | All incoming string request body fields sanitized with `xss` |
+| **Helmet Security** | HTTP security headers via `helmet` |
+| **Input Validation** | `express-validator` chains on task create/update/assign routes |
+| **Swagger UI** | Interactive OpenAPI 3.0 documentation at `/api/docs` |
+| **Docker** | Multi-stage Dockerfiles for backend (Node 22) and frontend (Nginx) |
+| **GitHub Actions CI** | Automated lint, build, Prisma validate, and Docker build on every push |
+
+---
+
+## Technology Stack
+
+### Backend
+
+| Layer | Technology |
+|---|---|
+| Runtime | Node.js 22 |
+| Framework | Express 5 |
+| ORM | Prisma 7 with `@prisma/adapter-pg` |
+| Database | PostgreSQL 16 (Supabase cloud) |
+| Authentication | JSON Web Tokens (`jsonwebtoken`) |
+| Password Hashing | `bcryptjs` |
+| File Storage | Supabase Storage SDK |
+| File Uploads | Multer (memory storage) |
+| Real-Time | Socket.IO 4 |
+| Email | Nodemailer (SMTP / Gmail) |
+| Scheduler | node-cron |
+| Validation | express-validator |
+| Security | Helmet, `xss` |
+| API Docs | swagger-jsdoc + swagger-ui-express |
+
+### Frontend
+
+| Layer | Technology |
+|---|---|
+| Framework | React 19 |
+| Build Tool | Vite 8 |
+| Routing | React Router DOM 7 |
+| HTTP Client | Axios |
+| Real-Time | socket.io-client 4 |
+| Icons | Lucide React |
+| Styling | Tailwind CSS 4 |
+| Web Server | Nginx 1.27 (production container) |
+
+### Infrastructure
+
+| Component | Technology |
+|---|---|
+| Containerization | Docker (multi-stage builds) |
+| Orchestration | Docker Compose v2 |
+| CI/CD | GitHub Actions |
+| Cloud Database | Supabase PostgreSQL |
+| File Storage | Supabase Storage |
 
 ---
 
 ## Architecture Overview
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                        Browser / Client                      │
-└──────────────────────────┬──────────────────────────────────┘
-                           │ HTTP
-┌──────────────────────────▼──────────────────────────────────┐
-│              Frontend  (React + Vite + TailwindCSS)          │
-│                      Nginx  :80  →  :3000                    │
-│            Proxies  /api/*  →  Backend :5000                 │
-└──────────────────────────┬──────────────────────────────────┘
-                           │ /api/*
-┌──────────────────────────▼──────────────────────────────────┐
-│              Backend  (Node.js + Express)  :5000             │
-│                                                              │
-│  ┌──────────┐   ┌─────────────┐   ┌──────────────────────┐  │
-│  │  Routes  │ → │ Controllers │ → │  Prisma ORM Client   │  │
-│  └──────────┘   └─────────────┘   └──────────┬───────────┘  │
-│                                              │               │
-│  ┌──────────────────────────────────────┐    │               │
-│  │   JWT Middleware  │  Auth Middleware │    │               │
-│  └──────────────────────────────────────┘    │               │
-│                                              │               │
-│  ┌──────────────────────────────────────┐    │               │
-│  │     Swagger UI  /api/docs            │    │               │
-│  └──────────────────────────────────────┘    │               │
-└─────────────────────────────────────────┬────┘               
-                                          │ DATABASE_URL (SSL)
-                              ┌───────────▼──────────┐
-                              │   Supabase PostgreSQL │
-                              │   (cloud-hosted)      │
-                              └──────────────────────┘
++-----------------------------------------------------+
+|                   CLIENT BROWSER                    |
+|           React 19 + Vite SPA (port 5173)           |
+|  Axios HTTP requests   socket.io-client WebSocket   |
++-------------------+---------------------+-----------+
+                    |                     |
+        REST API    |                     | WebSocket
+                    v                     v
++-----------------------------------------------------+
+|           BACKEND  Node.js / Express 5              |
+|                      port 5001                      |
+|                                                     |
+|  Routes -> Middleware -> Controllers                |
+|            (protect,    authController              |
+|             restrictTo  userMgmtController          |
+|             sanitize    projectController           |
+|             upload)     taskController              |
+|                         commentController           |
+|                         attachmentController        |
+|                         notificationController      |
+|                                                     |
+|  socketServer           Services                    |
+|  (Socket.IO rooms)      taskService                 |
+|                         mailerService               |
+|                                                     |
+|  jobs/dueDateChecker (node-cron daily 09:00)        |
++---------------------------------------------+-------+
+                                              |
+               +------------------------------+
+               |                              |
+               v                              v
++------------------------+   +------------------------+
+|  Supabase PostgreSQL   |   |   Supabase Storage     |
+|  (Prisma ORM)          |   |   (File Attachments)   |
++------------------------+   +------------------------+
 ```
 
 ---
 
-## Tech Stack
-
-| Layer          | Technology                          | Version  |
-|----------------|-------------------------------------|----------|
-| Frontend       | React                               | 19.x     |
-| Bundler        | Vite                                | 8.x      |
-| CSS            | TailwindCSS                         | 4.x      |
-| Backend        | Node.js + Express                   | 20 / 5.x |
-| ORM            | Prisma                              | 7.x      |
-| Database       | PostgreSQL via Supabase             | 16       |
-| Authentication | JWT (`jsonwebtoken` + `bcryptjs`)   | —        |
-| API Docs       | Swagger (`swagger-jsdoc` + `swagger-ui-express`) | — |
-| Containerisation | Docker + Docker Compose           | —        |
-| CI/CD          | GitHub Actions                      | —        |
-
----
-
-## Project Structure
+## Folder Structure
 
 ```
 Task-Management-System/
-├── .github/
-│   └── workflows/
-│       └── ci.yml                  # GitHub Actions CI pipeline
-│
-├── backend/
-│   ├── config/
-│   │   ├── db.js                   # Raw PostgreSQL connection (pg)
-│   │   ├── prisma.js               # Prisma client singleton
-│   │   └── swagger.js              # Swagger / OpenAPI specification
-│   ├── controllers/
-│   │   └── authController.js       # Login logic
-│   ├── middleware/
-│   │   └── authMiddleware.js       # JWT protect + role restrictTo
-│   ├── prisma/
-│   │   ├── schema.prisma           # Database models & relations
-│   │   └── seed.js                 # Database seeder
-│   ├── routes/
-│   │   └── authRoutes.js           # Auth endpoints (+ Swagger JSDoc)
-│   ├── .dockerignore
-│   ├── Dockerfile                  # Multi-stage backend image
-│   ├── package.json
-│   └── server.js                   # Express entry point + Swagger UI mount
-│
-├── frontend/
-│   ├── public/
-│   ├── src/
-│   │   ├── App.jsx
-│   │   ├── main.jsx
-│   │   └── index.css
-│   ├── .dockerignore
-│   ├── Dockerfile                  # Multi-stage frontend image (Nginx)
-│   ├── nginx.conf                  # Nginx SPA + reverse proxy config
-│   ├── vite.config.js
-│   └── package.json
-│
-├── .env.example                    # Template for all environment variables
-├── docker-compose.yml              # Orchestrates backend + frontend (+ optional DB)
-└── README.md
+|-- .env.example
+|-- .gitignore
+|-- docker-compose.yml
+|-- package.json
+|-- .github/
+|   `-- workflows/
+|       `-- ci.yml
+|-- backend/
+|   |-- Dockerfile
+|   |-- .env
+|   |-- server.js
+|   |-- package.json
+|   |-- config/
+|   |   |-- db.js
+|   |   |-- prisma.js
+|   |   |-- supabase.js
+|   |   `-- swagger.js
+|   |-- controllers/
+|   |   |-- authController.js
+|   |   |-- userController.js
+|   |   |-- userManagementController.js
+|   |   |-- projectController.js
+|   |   |-- taskController.js
+|   |   |-- commentController.js
+|   |   |-- attachmentController.js
+|   |   `-- notificationController.js
+|   |-- middleware/
+|   |   |-- authMiddleware.js
+|   |   |-- securityMiddleware.js
+|   |   `-- uploadMiddleware.js
+|   |-- routes/
+|   |   |-- authRoutes.js
+|   |   |-- userRoutes.js
+|   |   |-- projectRoutes.js
+|   |   |-- taskRoutes.js
+|   |   |-- commentRoutes.js
+|   |   |-- attachmentRoutes.js
+|   |   `-- notificationRoutes.js
+|   |-- services/
+|   |   |-- taskService.js
+|   |   `-- mailerService.js
+|   |-- validators/
+|   |   `-- taskValidator.js
+|   |-- sockets/
+|   |   `-- socketServer.js
+|   |-- jobs/
+|   |   `-- dueDateChecker.js
+|   `-- prisma/
+|       |-- schema.prisma
+|       `-- seed.js
+`-- frontend/
+    |-- Dockerfile
+    |-- nginx.conf
+    |-- index.html
+    |-- vite.config.js
+    |-- package.json
+    `-- src/
+        |-- main.jsx
+        |-- App.jsx
+        |-- layouts/
+        |   |-- AdminLayout.jsx
+        |   `-- DashboardLayout.jsx
+        |-- pages/
+        |   |-- Login.jsx
+        |   |-- AdminDashboard.jsx
+        |   |-- Projects.jsx
+        |   |-- Users.jsx
+        |   |-- Tasks.jsx
+        |   |-- Profile.jsx
+        |   |-- ProfileSettings.jsx
+        |   |-- ChangePassword.jsx
+        |   `-- Settings.jsx
+        |-- components/
+        |   |-- Navbar.jsx
+        |   |-- Sidebar.jsx
+        |   |-- TaskDetailsModal.jsx
+        |   `-- FileDropZone.jsx
+        |-- services/
+        |   |-- socket.js
+        |   `-- notificationService.js
+        |-- constants/
+        |   `-- layout.js
+        `-- assets/
+            |-- hero.png
+            `-- logo.png
 ```
 
 ---
 
-## Getting Started (Local — No Docker)
+## Installation
 
 ### Prerequisites
 
-- Node.js ≥ 20 — [nodejs.org](https://nodejs.org)
-- npm ≥ 10
-- A **Supabase** project with a PostgreSQL connection string
+- Node.js 22+
+- npm 10+
+- A Supabase project (PostgreSQL + Storage bucket named `attachments`)
+- SMTP credentials (Gmail App Password or Mailtrap)
 
-### 1. Clone the repository
-
-```bash
-git clone https://github.com/shakikumar/Task-Management-System.git
-cd Task-Management-System
-```
-
-### 2. Configure environment variables
-
-```bash
-cp .env.example .env
-# Open .env and fill in the required values (see table below)
-```
-
-### 3. Start the Backend
+### Backend Setup
 
 ```bash
 cd backend
 npm install
-
-# Push the Prisma schema to your Supabase database
+cp ../.env.example .env
+# Fill in all values — see Environment Variables section
+npx prisma generate
 npx prisma db push
-
-# (Optional) Seed the database with sample data
-node prisma/seed.js
-
-# Start the development server
-npm run dev
+node prisma/seed.js   # optional
 ```
 
-The API will be available at **http://localhost:5000**  
-Swagger UI will be available at **http://localhost:5000/api/docs**
-
-### 4. Start the Frontend
+### Frontend Setup
 
 ```bash
-# In a new terminal
 cd frontend
 npm install
-npm run dev
 ```
-
-The React app will be available at **http://localhost:5173**
 
 ---
 
 ## Environment Variables
 
-Copy `.env.example` to `.env` in the **root** directory before running locally or with Docker.
+All variables are set in `backend/.env`. The root `.env.example` is the template.
 
-| Variable         | Required | Description                                            | Example                                              |
-|------------------|----------|--------------------------------------------------------|------------------------------------------------------|
-| `PORT`           | No       | Express server port (default `5000`)                   | `5000`                                               |
-| `NODE_ENV`       | No       | Runtime environment                                    | `development` / `production`                         |
-| `DATABASE_URL`   | ✅ Yes   | Full Supabase PostgreSQL connection string             | `postgresql://user:pass@db.supabase.co:5432/postgres?sslmode=require` |
-| `DB_HOST`        | No       | DB host (used by local pg pool only)                   | `localhost`                                          |
-| `DB_PORT`        | No       | DB port                                                | `5432`                                               |
-| `DB_USER`        | No       | DB username                                            | `tms_user`                                           |
-| `DB_PASSWORD`    | No       | DB password                                            | `tms_password`                                       |
-| `DB_NAME`        | No       | DB name                                                | `task_manager_db`                                    |
-| `JWT_SECRET`     | ✅ Yes   | Secret key for signing JWT tokens (min 32 chars)       | `super-secret-key-change-me`                         |
-| `JWT_EXPIRES_IN` | No       | JWT expiry duration                                    | `7d`                                                 |
-| `CORS_ORIGIN`    | No       | Allowed CORS origin                                    | `http://localhost:3000`                              |
-| `SMTP_HOST`      | No       | Email SMTP host (for notifications)                    | `smtp.mailtrap.io`                                   |
-| `SMTP_PORT`      | No       | Email SMTP port                                        | `2525`                                               |
-| `SMTP_USER`      | No       | SMTP username                                          | `your_smtp_username`                                 |
-| `SMTP_PASSWORD`  | No       | SMTP password                                          | `your_smtp_password`                                 |
-
-> **Security tip:** Never commit a real `.env` file. It is listed in `.gitignore`.
+| Variable | Description | Example |
+|---|---|---|
+| `PORT` | Backend server port | `5001` |
+| `NODE_ENV` | Runtime environment | `development` |
+| `DATABASE_URL` | Supabase PostgreSQL connection string | `postgresql://...` |
+| `DB_HOST` | Raw pg host | `localhost` |
+| `DB_PORT` | Raw pg port | `5432` |
+| `DB_USER` | Raw pg user | `your_db_user` |
+| `DB_PASSWORD` | Raw pg password | `your_db_password` |
+| `DB_NAME` | Database name | `task_manager_db` |
+| `DB_POOL_MAX` | Max pg pool connections | `5` |
+| `JWT_SECRET` | JWT signing secret | `mysupersecretkey` |
+| `JWT_EXPIRES_IN` | JWT expiry | `24h` |
+| `CORS_ORIGIN` | Allowed frontend origin | `http://localhost:5173` |
+| `SMTP_HOST` | SMTP hostname | `smtp.gmail.com` |
+| `SMTP_PORT` | SMTP port | `587` |
+| `SMTP_USER` | SMTP sender address | `you@gmail.com` |
+| `SMTP_PASS` | SMTP App Password | `your_app_password` |
+| `SUPABASE_URL` | Supabase project URL | `https://xxx.supabase.co` |
+| `SUPABASE_ANON_KEY` | Supabase anon key | `eyJ...` |
+| `SUPABASE_SERVICE_KEY` | Supabase service role key | `eyJ...` |
+| `SUPABASE_BUCKET` | Supabase Storage bucket | `attachments` |
 
 ---
 
-## Docker Setup
+## Running the Project
 
-### Prerequisites
+### Development (Local)
 
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (includes Docker Compose v2)
-
-### Quick Start — Production Mode (Supabase database)
+**Backend:**
 
 ```bash
-# 1. Configure your .env (DATABASE_URL must point to Supabase)
-cp .env.example .env
-
-# 2. Build images and start all services
-docker compose up --build
-
-# Services:
-#   Frontend  →  http://localhost:3000
-#   Backend   →  http://localhost:5000
-#   Swagger   →  http://localhost:5000/api/docs
+cd backend
+npm run dev
 ```
 
-### With Local PostgreSQL (Dev / Testing)
+API: `http://localhost:5001`
+Swagger: `http://localhost:5001/api/docs`
+
+**Frontend:**
 
 ```bash
-# Starts an extra local postgres container alongside backend + frontend
+cd frontend
+npm run dev
+```
+
+SPA: `http://localhost:5173`
+
+---
+
+## Docker
+
+### Docker Compose
+
+The `docker-compose.yml` defines three services:
+
+| Service | Image | Port |
+|---|---|---|
+| `backend` | Node 22 Alpine | `5000` |
+| `frontend` | Nginx 1.27 Alpine | `3000` |
+| `db` (optional profile) | PostgreSQL 16 Alpine | `5432` |
+
+```bash
+# Production (Supabase DB — no local DB):
+docker compose up --build
+
+# Development with local PostgreSQL:
 docker compose --profile local-db up --build
 ```
 
-### Individual Image Builds
-
-```bash
-# Backend only
-docker build -t tms-backend ./backend
-
-# Frontend only
-docker build -t tms-frontend ./frontend
-```
-
-### Useful Docker Commands
-
-```bash
-# View running containers
-docker compose ps
-
-# Stream logs from all services
-docker compose logs -f
-
-# Stream logs from one service
-docker compose logs -f backend
-
-# Stop everything
-docker compose down
-
-# Stop and remove volumes (wipes local DB data)
-docker compose down -v
-
-# Rebuild a single service
-docker compose up --build backend
-```
-
-### Docker Architecture
-
-```
-docker-compose.yml
-├── frontend  (port 3000:80)
-│     └── Nginx serves React SPA
-│           /api/* → proxied to backend:5000
-│
-├── backend   (port 5000:5000)
-│     └── Node.js Express API
-│           → Prisma → Supabase PostgreSQL
-│
-└── db        (port 5432:5432)  ← only with --profile local-db
-      └── postgres:16-alpine
-```
+The frontend Nginx container proxies `/api/*` requests to the backend container using Docker internal DNS (`http://backend:5000`).
 
 ---
 
-## API Documentation (Swagger)
+## Swagger API Documentation
 
-Interactive API documentation is automatically generated from JSDoc comments in the route files.
+- **UI:** `http://localhost:5001/api/docs`
+- **Raw JSON:** `http://localhost:5001/api/docs.json`
 
-| URL | Description |
-|-----|-------------|
-| `http://localhost:5000/api/docs` | Swagger UI (interactive) |
-| `http://localhost:5000/api/docs.json` | Raw OpenAPI 3.0 JSON spec |
+Authentication in Swagger:
+1. Call `POST /api/auth/login` to get a token.
+2. Click **Authorize** and enter the token.
+3. All protected requests will include `Authorization: Bearer <token>`.
 
-### How to Use
+---
 
-1. Start the backend server.
-2. Open **http://localhost:5000/api/docs** in your browser.
-3. Click **POST /api/auth/login**, then **Try it out**.
-4. Enter credentials and execute — copy the returned `token`.
-5. Click the **Authorize 🔒** button at the top and paste the token.
-6. All subsequent requests will include the `Authorization: Bearer <token>` header automatically.
+## Authentication
 
-### Adding Swagger docs to new routes
+1. Client sends `POST /api/auth/login` with `{ email, password }`.
+2. Server verifies against bcrypt-hashed password.
+3. Checks `isActive` — deactivated accounts are rejected (403).
+4. Returns signed JWT `{ userId, role }` with configurable expiry (default `24h`).
+5. Client stores token in `localStorage` and attaches it as `Authorization: Bearer <token>`.
+6. `protect` middleware verifies the token and populates `req.user` on every protected route.
+7. Accounts with `mustResetPassword: true` must call `PUT /api/auth/change-password` first.
 
-Add JSDoc annotations directly above your route definition:
+**Password Policy (change-password):**
+- Minimum 8 characters
+- At least 1 uppercase, 1 lowercase, 1 digit, 1 special character (`!@#$%^&*`)
 
-```js
-/**
- * @swagger
- * /api/tasks:
- *   get:
- *     summary: Get all tasks for the current user
- *     tags: [Tasks]
- *     security:
- *       - BearerAuth: []
- *     responses:
- *       200:
- *         description: List of tasks
- */
-router.get('/', protect, getAllTasks);
-```
+---
+
+## Role-Based Access Control (RBAC)
+
+| Role | Key Capabilities |
+|---|---|
+| `ADMINISTRATOR` | Full user management; read all projects/users; cannot create projects, tasks, or comments |
+| `PROJECT_MANAGER` | Create/update/delete own projects and tasks; comment on tasks |
+| `COLLABORATOR` | View own assigned tasks only; update task `status` only; comment on assigned tasks |
+
+Isolation rules (enforced in service layer):
+- COLLABORATORs only see tasks assigned to them
+- PROJECT_MANAGERs only see tasks in their own projects
+- COLLABORATORs can only update the `status` field
+- Comments can only be deleted by the original author
+- Attachments can be deleted by owner, ADMINISTRATOR, or PROJECT_MANAGER
+
+---
+
+## Socket.IO Real-Time Notifications
+
+**Backend Events:**
+
+| Event | Direction | Description |
+|---|---|---|
+| `join` | Client to Server | Client sends `userId` to join its private room |
+| `newNotification` | Server to Client | Pushed to user room when a notification is created |
+| `disconnect` | Client to Server | Logged on disconnect |
+
+**Notification Triggers:**
+
+| Action | Recipient |
+|---|---|
+| Task created or assigned | Assigned user |
+| Task status updated | Assigned user |
+| Comment by COLLABORATOR | Project creator |
+| Comment by PROJECT_MANAGER | Task assignee |
+| File attachment uploaded | Task assignee |
+| Due-date reminder (daily cron) | Task assignee |
+
+---
+
+## Deployment
+
+1. Set up Supabase PostgreSQL and Storage (`attachments` bucket).
+2. Configure SMTP credentials.
+3. Build and push Docker images to a container registry.
+4. Deploy backend (port 5000) and frontend (port 80) containers to your platform.
+5. Set all environment variables on the platform.
+6. Run `npx prisma db push` to sync the schema.
 
 ---
 
 ## CI/CD Pipeline
 
-The GitHub Actions workflow at [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs automatically on every push and pull request to `main`.
+File: `.github/workflows/ci.yml`
 
-### Pipeline Jobs
+Triggers: push to `main`, any `member*` branch, and pull requests to `main`.
 
-```
-Push / PR to main
-       │
-       ├─── backend-ci ──────────────────────────────────────────┐
-       │     1. Install dependencies (npm ci)                    │
-       │     2. Validate Prisma schema                           │
-       │     3. Generate Prisma client                           │
-       │     4. Validate Swagger spec                            │
-       │     5. Build backend Docker image                       │
-       │                                                         │
-       ├─── frontend-ci ─────────────────────────────────────────┤
-       │     1. Install dependencies (npm ci)                    │
-       │     2. ESLint check                                     │
-       │     3. Vite production build                            │
-       │     4. Upload dist/ artifact                            │
-       │     5. Build frontend Docker image                      │
-       │                                                         │
-       └─── compose-check ◄── (needs both above) ───────────────┘
-             1. Generate minimal .env
-             2. docker compose config --quiet
-                    │
-                    └─── ci-success ◄── (status gate for branch protection)
-```
+| Job | Steps |
+|---|---|
+| `backend-ci` | Checkout, install, Prisma validate, Prisma generate, Swagger spec check, Docker build |
+| `frontend-ci` | Checkout, install, ESLint, Vite build, upload dist artifact, Docker build |
+| `compose-check` | Validate `docker-compose.yml` syntax |
+| `ci-success` | Gate — fails if any prior job failed |
 
-### Branch Protection Setup (recommended)
-
-In your GitHub repository → **Settings → Branches → Add rule** for `main`:
-
-- ✅ Require status checks to pass: **`✅ All CI checks passed`**
-- ✅ Require branches to be up to date before merging
-- ✅ Require pull request reviews before merging
+Images are built but not pushed (CI smoke-test only).
 
 ---
 
-## Database Schema
+## License
 
-The Prisma schema defines 6 models connected through foreign key relations:
-
-```
-User ──────────── owns ──────────► Project
-  │                                    │
-  │                                    │ contains
-  │                                    ▼
-  └──── assigned to ───────────► Task
-                                    │
-                          ┌─────────┼─────────┐
-                          ▼         ▼         ▼
-                       Comment  Attachment  Notification
-```
-
-| Model          | Key Fields                                              |
-|----------------|---------------------------------------------------------|
-| `User`         | `id`, `name`, `email`, `password`, `role`, `isActive`  |
-| `Project`      | `id`, `name`, `description`, `createdById`             |
-| `Task`         | `id`, `title`, `status`, `priority`, `dueDate`, `assignedUserId` |
-| `Comment`      | `id`, `content`, `taskId`, `userId`                    |
-| `Attachment`   | `id`, `fileName`, `fileUrl`, `taskId`, `userId`        |
-| `Notification` | `id`, `message`, `isRead`, `userId`                    |
-
----
-
-## User Roles
-
-| Role              | Permissions                                              |
-|-------------------|----------------------------------------------------------|
-| `ADMINISTRATOR`   | Full system access — manage users, projects, tasks       |
-| `PROJECT_MANAGER` | Create and manage projects and tasks                     |
-| `COLLABORATOR`    | View and update tasks assigned to them                   |
-
-Role is enforced by the `restrictTo(...roles)` middleware in [`authMiddleware.js`](backend/middleware/authMiddleware.js).
-
----
-
-## Team Members
-
-| Member   | Responsibilities                                                     |
-|----------|----------------------------------------------------------------------|
-| Member A | Database schema design, User management (Admin panel)                |
-| Member B | Project management features                                          |
-| Member C | Task management features                                             |
-| Member D | Comments, Attachments, Notifications                                 |
-| **Member E** | **Swagger docs, Docker, docker-compose, GitHub Actions CI, README** |
-
----
-
-<div align="center">
-
-</div>
+MIT License.
