@@ -272,17 +272,19 @@ The system supports three user roles.
 ### Administrator
 
 - Full system access
+- Assign Users
 - User Management
-- Project Management
-- Task Management
+- Project view
+- Task view
 - Reports
 
 ### Project Manager
 
 - Create Projects
+- Create task
 - Manage Tasks
-- Assign Users
 - View Reports
+- Comment on Tasks
 
 ### Collaborator
 
