@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import TaskDetailsModal from "../components/TaskDetailsModal";
 import { API_BASE_URL } from "../config";
-import { Loader2 } from "lucide-react";
 
 
 
@@ -10,7 +9,6 @@ import { Loader2 } from "lucide-react";
 function Tasks() {
   const [tasks, setTasks] = useState([]);
   const [selectedTask, setSelectedTask] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
 
   const [title, setTitle] = useState("");
@@ -142,19 +140,18 @@ function Tasks() {
     }
 
     try {
-      setIsSubmitting(true);
       const res = await axios.post(
-        API_URL,
-        {
-          title,
-          projectId: selectedProject,
-          assignedUserId: selectedUser,
-          priority: priority.toUpperCase(),
-          status: "TODO",
-          dueDate
-        },
-        getAuthHeader()
-      );
+  API_URL,
+  {
+    title,
+    projectId: selectedProject,
+    assignedUserId: selectedUser,
+    priority: priority.toUpperCase(),
+    status: "TODO",
+    dueDate
+  },
+  getAuthHeader()
+);
 
       setTasks((prev) => [res.data.task, ...prev]);
 
@@ -164,8 +161,6 @@ function Tasks() {
       setDueDate("");
     } catch (error) {
       console.log("FULL ERROR:", error.response?.data);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -174,7 +169,6 @@ function Tasks() {
   // ----------------------------
   const updateTaskStatus = async (id, newStatus) => {
     try {
-      setIsSubmitting(true);
       const res = await axios.put(
         `${API_URL}/${id}`,
         {
@@ -195,8 +189,6 @@ function Tasks() {
 
     } catch (error) {
 
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -208,7 +200,6 @@ function Tasks() {
     if (!confirmDelete) return;
 
     try {
-      setIsSubmitting(true);
       const res = await axios.delete(
         `${API_URL}/${id}`,
         getAuthHeader()
@@ -222,8 +213,6 @@ function Tasks() {
 
     } catch (error) {
 
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -331,18 +320,16 @@ function Tasks() {
 
           <div className="grid grid-cols-1 md:grid-cols-6 gap-4 relative z-10">
             <input
-              className="clay-input px-4 py-2.5 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="clay-input px-4 py-2.5 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED] transition-all"
               placeholder="Task title..."
               value={title}
-              disabled={isSubmitting}
               onChange={(e) => setTitle(e.target.value)}
             />
 
             <select
               value={selectedUser}
-              disabled={isSubmitting}
               onChange={(e) => setSelectedUser(e.target.value)}
-              className="clay-input px-4 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="clay-input px-4 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED] transition-all cursor-pointer"
             >
               <option value="">Select Assignee</option>
               {users
@@ -359,9 +346,8 @@ function Tasks() {
 
             <select
               value={selectedProject}
-              disabled={isSubmitting}
               onChange={(e) => setSelectedProject(e.target.value)}
-              className="clay-input px-4 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="clay-input px-4 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED] transition-all cursor-pointer"
             >
               <option value="">Select Project</option>
               {projects.map((project) => (
@@ -375,9 +361,8 @@ function Tasks() {
             </select>
 
             <select
-              className="clay-input px-4 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="clay-input px-4 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED] transition-all cursor-pointer"
               value={priority}
-              disabled={isSubmitting}
               onChange={(e) => setPriority(e.target.value)}
             >
               <option value="High">High</option>
@@ -388,25 +373,16 @@ function Tasks() {
             <input
               type="date"
               value={dueDate}
-              disabled={isSubmitting}
               onChange={(e) => setDueDate(e.target.value)}
-              className="clay-input px-4 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="clay-input px-4 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED] transition-all cursor-pointer"
               min={new Date().toISOString().split("T")[0]}
             />          
 
             <button
               onClick={addTask}
-              disabled={isSubmitting}
-              className="clay-button-green hover:shadow-[0_8px_20px_rgba(16,185,129,0.35)] hover:-translate-y-0.5 active:translate-y-0 text-white font-bold rounded-2xl px-4 py-2.5 text-sm transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="clay-button-green hover:shadow-[0_8px_20px_rgba(16,185,129,0.35)] hover:-translate-y-0.5 active:translate-y-0 text-white font-bold rounded-2xl px-4 py-2.5 text-sm transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5"
             >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Adding...
-                </>
-              ) : (
-                "Add Task"
-              )}
+              Add Task
             </button>
           </div>
         </div>
@@ -493,7 +469,6 @@ function Tasks() {
                       ) : (
                         <select
                           value={task.status}
-                          disabled={isSubmitting}
                           onChange={(e) =>
                             updateTaskStatus(
                               task.id,
@@ -501,7 +476,7 @@ function Tasks() {
                             )
                           }
                           className={`
-                            text-[10px] px-2 py-0.5 rounded-full font-bold border border-transparent cursor-pointer focus:ring-1 focus:ring-purple-400 focus:outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed
+                            text-[10px] px-2 py-0.5 rounded-full font-bold border border-transparent cursor-pointer focus:ring-1 focus:ring-purple-400 focus:outline-none transition-all
                             ${task.status === "TODO"
                               ? "bg-slate-100 text-slate-700 border-slate-200/60"
                               : task.status === "IN_PROGRESS"
@@ -554,8 +529,7 @@ function Tasks() {
                         {currentUser?.role === "PROJECT_MANAGER" && (
                           <button
                             onClick={() => deleteTask(task.id)}
-                            disabled={isSubmitting}
-                            className="text-[10px] px-2.5 py-1 font-semibold text-red-700 bg-red-100/70 border border-red-200/30 hover:bg-red-200/70 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="text-[10px] px-2.5 py-1 font-semibold text-red-700 bg-red-100/70 border border-red-200/30 hover:bg-red-200/70 rounded-xl transition-all duration-200"
                           >
                             Delete
                           </button>

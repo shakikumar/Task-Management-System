@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { UserCog, Save, Loader2 } from "lucide-react";
+import { UserCog, Save } from "lucide-react";
 import { API_BASE_URL } from "../config";
 
 function ProfileSettings() {
@@ -8,7 +8,6 @@ function ProfileSettings() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [role, setRole] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const savedUser = JSON.parse(
@@ -24,7 +23,6 @@ function ProfileSettings() {
 
   const handleSaveProfile = async () => {
     try {
-      setIsSubmitting(true);
       const token = localStorage.getItem("token");
       const response = await axios.put(
         `${API_BASE_URL}/api/users/profile`,
@@ -50,8 +48,6 @@ function ProfileSettings() {
         error.response?.data?.message ||
         "Failed to update profile"
       );
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -80,8 +76,7 @@ function ProfileSettings() {
             <input
               type="text"
               placeholder="Enter your name"
-              disabled={isSubmitting}
-              className="w-full bg-white border border-purple-100 rounded-xl px-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-white border border-purple-100 rounded-xl px-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
@@ -94,8 +89,7 @@ function ProfileSettings() {
             <input
               type="email"
               placeholder="Enter your email"
-              disabled={isSubmitting}
-              className="w-full bg-white border border-purple-100 rounded-xl px-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-white border border-purple-100 rounded-xl px-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
@@ -108,8 +102,7 @@ function ProfileSettings() {
             <input
               type="text"
               placeholder="Enter phone number"
-              disabled={isSubmitting}
-              className="w-full bg-white border border-purple-100 rounded-xl px-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-white border border-purple-100 rounded-xl px-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
             />
@@ -130,20 +123,10 @@ function ProfileSettings() {
           <div className="pt-3">
             <button
               onClick={handleSaveProfile}
-              disabled={isSubmitting}
-              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-3 text-sm font-semibold text-white hover:from-emerald-500 hover:to-teal-500 hover:shadow-[0_8px_20px_rgba(16,185,129,0.25)] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-3 text-sm font-semibold text-white hover:from-emerald-500 hover:to-teal-500 hover:shadow-[0_8px_20px_rgba(16,185,129,0.25)] transition-all duration-200 cursor-pointer"
             >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="h-4.5 w-4.5 animate-spin" />
-                  Saving Changes...
-                </>
-              ) : (
-                <>
-                  <Save size={16} />
-                  Save Changes
-                </>
-              )}
+              <Save size={16} />
+              Save Changes
             </button>
           </div>
         </div>

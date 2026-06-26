@@ -11,7 +11,6 @@ import {
   Trash2,
   Plus,
   User,
-  Loader2,
 } from 'lucide-react';
 
 /* -------------------------------------------------------------------------- */
@@ -37,7 +36,6 @@ function Projects() {
   const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -118,7 +116,6 @@ function Projects() {
     }
 
     try {
-      setIsSubmitting(true);
       const token = localStorage.getItem('token');
 
       const response = await axios.post(`${API_BASE_URL}/api/projects`, {
@@ -144,14 +141,11 @@ function Projects() {
     } catch (error) {
       console.error("Error creating project:", error);
       alert(error.response?.data?.message || "Failed to create project.");
-    } finally {
-      setIsSubmitting(false);
     }
   }
 
   const handleStatusChange = async (projectId, newStatus) => {
     try {
-      setIsSubmitting(true);
       const token = localStorage.getItem("token");
 
       await axios.put(
@@ -180,8 +174,6 @@ function Projects() {
     } catch (error) {
       console.log(error);
       alert("Failed to update status");
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -193,7 +185,6 @@ function Projects() {
     if (!confirmDelete) return;
 
     try {
-      setIsSubmitting(true);
       const token = localStorage.getItem('token');
 
       const response = await axios.delete(`${API_BASE_URL}/api/projects/${id}`, {
@@ -206,8 +197,6 @@ function Projects() {
     } catch (error) {
       console.error("Error deleting project:", error);
       alert(error.response?.data?.message || "Failed to delete project.");
-    } finally {
-      setIsSubmitting(false);
     }
   }
 
@@ -344,9 +333,8 @@ function Projects() {
                 {user?.role === "PROJECT_MANAGER" ? (
                   <select
                     value={project.status}
-                    disabled={isSubmitting}
                     onChange={(e) => handleStatusChange(project.id, e.target.value)}
-                    className={`text-xs font-semibold rounded-full px-2.5 py-1 border-0 outline-none cursor-pointer transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed ${
+                    className={`text-xs font-semibold rounded-full px-2.5 py-1 border-0 outline-none cursor-pointer transition-all shadow-sm ${
                       project.status === "PLANNING"
                         ? "bg-yellow-100 text-yellow-750 border border-yellow-200/50"
                         : project.status === "IN_PROGRESS"
@@ -399,7 +387,7 @@ function Projects() {
 
             <div className="mt-4">
               <div className="mb-2">
-                <div className="flex justify-between text-[11px] font-bold text-slate-555 mb-1">
+                <div className="flex justify-between text-[11px] font-bold text-slate-550 mb-1">
                   <span>Progress</span>
                   <span className="text-violet-600">{project.progress || 0}%</span>
                 </div>
@@ -416,8 +404,7 @@ function Projects() {
                   <button
                     type="button"
                     onClick={() => handleDeleteProject(project.id)}
-                    disabled={isSubmitting}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-red-600 bg-red-50/80 hover:bg-red-100 border border-red-200/60 rounded-xl px-3 py-1.5 transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-red-600 bg-red-50/80 hover:bg-red-100 border border-red-200/60 rounded-xl px-3 py-1.5 transition-all duration-200 cursor-pointer"
                   >
                     <Trash2 size={13} />
                     Delete
@@ -439,9 +426,8 @@ function Projects() {
               <div>
                 <label className="block mb-1.5 text-xs font-bold text-purple-600/80 uppercase tracking-wider">Project Owner</label>
                 <select
-                  className="w-full bg-white border border-purple-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-white border border-purple-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all cursor-pointer"
                   value={form.owner}
-                  disabled={isSubmitting}
                   onChange={(e) => setForm({ ...form, owner: e.target.value })}
                 >
                   <option value="">Select Owner</option>
@@ -460,8 +446,7 @@ function Projects() {
                 <input
                   type="text"
                   placeholder="Project Name"
-                  disabled={isSubmitting}
-                  className="w-full bg-white border border-purple-100 rounded-xl px-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-white border border-purple-100 rounded-xl px-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                 />
@@ -472,8 +457,7 @@ function Projects() {
                 <textarea
                   placeholder="Description"
                   rows={3}
-                  disabled={isSubmitting}
-                  className="w-full bg-white border border-purple-100 rounded-xl px-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-white border border-purple-100 rounded-xl px-4 py-2.5 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all"
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
                 />
@@ -482,9 +466,8 @@ function Projects() {
               <div>
                 <label className="block mb-1.5 text-xs font-bold text-purple-600/80 uppercase tracking-wider">Status</label>
                 <select
-                  className="w-full bg-white border border-purple-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-white border border-purple-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 transition-all cursor-pointer"
                   value={form.status}
-                  disabled={isSubmitting}
                   onChange={(e) => setForm({ ...form, status: e.target.value })}
                 >
                   <option value="PLANNING">Planning</option>
@@ -498,8 +481,7 @@ function Projects() {
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                disabled={isSubmitting}
-                className="px-4 py-2.5 border border-slate-200 text-slate-650 font-semibold rounded-xl hover:bg-slate-50 transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2.5 border border-slate-200 text-slate-650 font-semibold rounded-xl hover:bg-slate-50 transition-all duration-200 cursor-pointer"
               >
                 Cancel
               </button>
@@ -507,17 +489,9 @@ function Projects() {
               <button
                 type="button"
                 onClick={handleCreate}
-                disabled={isSubmitting}
-                className="px-5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-violet-500 hover:to-indigo-500 hover:shadow-[0_8px_20px_rgba(124,58,237,0.25)] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+                className="px-5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-violet-500 hover:to-indigo-500 hover:shadow-[0_8px_20px_rgba(124,58,237,0.25)] transition-all duration-200 cursor-pointer"
               >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Creating...
-                  </>
-                ) : (
-                  "Create"
-                )}
+                Create
               </button>
             </div>
           </div>

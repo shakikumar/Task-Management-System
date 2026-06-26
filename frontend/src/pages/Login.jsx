@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { API_BASE_URL } from "../config";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -290,14 +290,7 @@ function Login() {
                 disabled={loading}
                 className="w-full mt-2 rounded-xl py-3 text-white font-semibold bg-gradient-to-r from-purple-600 via-fuchsia-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] active:scale-[0.98] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none flex items-center justify-center text-sm shadow-[0_0_15px_rgba(168,85,247,0.2)]"
               >
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4.5 w-4.5 animate-spin" />
-                    Signing in...
-                  </>
-                ) : (
-                  "Sign In"
-                )}
+                {loading ? "Signing in..." : "Sign In"}
               </button>
 
             </form>

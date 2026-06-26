@@ -1,24 +1,21 @@
 import { useState, useRef } from "react";
 import { UploadCloud } from "lucide-react";
 
-export default function FileDropZone({ onFileSelect, disabled }) {
+export default function FileDropZone({ onFileSelect }) {
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef(null);
 
   const handleDragOver = (e) => {
     e.preventDefault();
-    if (disabled) return;
     setIsDragging(true);
   };
 
   const handleDragLeave = () => {
-    if (disabled) return;
     setIsDragging(false);
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
-    if (disabled) return;
     setIsDragging(false);
 
     const file = e.dataTransfer.files[0];
@@ -34,14 +31,12 @@ export default function FileDropZone({ onFileSelect, disabled }) {
     <div className="w-full select-none">
       {/* Drop Area */}
       <div
-        onClick={() => !disabled && inputRef.current.click()}
+        onClick={() => inputRef.current.click()}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={`border-2 border-dashed rounded-2xl p-5 text-center cursor-pointer transition-all duration-200 flex flex-col items-center justify-center gap-2
-          ${disabled 
-            ? "border-purple-100 bg-slate-50/50 cursor-not-allowed opacity-60 pointer-events-none"
-            : isDragging 
+          ${isDragging 
             ? "border-violet-500 bg-violet-50/50 scale-[1.01] shadow-[0_8px_20px_rgba(124,58,237,0.05)]" 
             : "border-purple-200 bg-purple-50/10 hover:border-purple-300 hover:bg-purple-50/20"
           }`}
