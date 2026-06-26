@@ -78,7 +78,8 @@ erDiagram
         String message
         Boolean isRead
         String userId FK
-        String reminderType "nullable"
+        Boolean delivered
+        DateTime deliveredAt "nullable"
         DateTime createdAt
     }
 ```
@@ -189,7 +190,8 @@ Represents an in-app notification for a user.
 | `message` | String | NOT NULL | Notification text |
 | `isRead` | Boolean | NOT NULL, default false | Read/unread flag |
 | `userId` | String (UUID) | NOT NULL, FK → User.id | Recipient user |
-| `reminderType` | String | NULLABLE | Optional reminder type label |
+| `delivered` | Boolean | NOT NULL, default false | Delivery status |
+| `deliveredAt` | DateTime | NULLABLE | Delivery timestamp |
 | `createdAt` | DateTime | NOT NULL, default now() | Creation timestamp |
 
 **Index:** `@@index([userId])`
